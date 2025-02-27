@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useState, useMemo } from "react";
-import { Input } from "../components/ui/input"
+import { useEffect, useCallback, useState } from "react";
 import { signIn, signOut, getCsrfToken } from "next-auth/react";
 import sdk, {
     AddFrame,
@@ -11,24 +10,34 @@ import sdk, {
 } from "@farcaster/frame-sdk";
 import {
   useAccount,
-  useSendTransaction,
-  useSignMessage,
-  useSignTypedData,
-  useWaitForTransactionReceipt,
   useDisconnect,
   useConnect,
-  useSwitchChain,
   useChainId,
 } from "wagmi";
 
 import { config } from "~/components/providers/WagmiProvider";
 import { Button } from "~/components/ui/Button";
 import { truncateAddress } from "~/lib/truncateAddress";
-import { base, degen, mainnet, optimism } from "wagmi/chains";
-import { BaseError, UserRejectedRequestError } from "viem";
 import { useSession } from "next-auth/react"
 import { createStore } from 'mipd'
-import { Label } from "~/components/ui/label";
+
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyAMk2mkCIy78ibJE7ZQyYpjkVJaDH-eGQ4",
+  authDomain: "daily-quiz-d128d.firebaseapp.com",
+  projectId: "daily-quiz-d128d",
+  storageBucket: "daily-quiz-d128d.firebasestorage.app",
+  messagingSenderId: "144870833977",
+  appId: "1:144870833977:web:03b10a551c152a00edf2e8"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
 
 
 export default function Demo(
@@ -37,7 +46,6 @@ export default function Demo(
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [context, setContext] = useState<Context.FrameContext>();
   const [isContextOpen, setIsContextOpen] = useState(false);
-  const [txHash, setTxHash] = useState<string | null>(null);
 
   const [added, setAdded] = useState(false);
   const [notificationDetails, setNotificationDetails] =
@@ -55,50 +63,9 @@ export default function Demo(
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
 
-  const {
-    sendTransaction,
-    error: sendTxError,
-    isError: isSendTxError,
-    isPending: isSendTxPending,
-  } = useSendTransaction();
-
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({
-      hash: txHash as `0x${string}`,
-    });
-
-  const {
-    signTypedData,
-    error: signTypedError,
-    isError: isSignTypedError,
-    isPending: isSignTypedPending,
-  } = useSignTypedData();
-
   const { disconnect } = useDisconnect();
   const { connect } = useConnect();
 
-  const {
-    switchChain,
-    error: switchChainError,
-    isError: isSwitchChainError,
-    isPending: isSwitchChainPending,
-  } = useSwitchChain();
-
-  const nextChain = useMemo(() => {
-    if (chainId === base.id) {
-      return optimism;
-    } else if (chainId === optimism.id) {
-      return degen;
-    } else if (chainId === degen.id) {
-      return mainnet;
-    } else {
-      return base;
-    }
-  }, [chainId]);
-
-  const handleSwitchChain = useCallback(() => {
-    switchChain({ chainId: nextChain.id });
-  }, [switchChain, chainId]);
 
   useEffect(() => {
     const load = async () => {
@@ -163,9 +130,6 @@ store.subscribe(providerDetails => {
     }
   }, [isSDKLoaded]);
 
-  const openUrl = useCallback(() => {
-    sdk.actions.openUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
-  }, []);
 
   const openWarpcastUrl = useCallback(() => {
     sdk.actions.openUrl("https://warpcast.com/~/compose");
@@ -234,37 +198,6 @@ store.subscribe(providerDetails => {
     }
   }, [context, notificationDetails]);
 
-  const sendTx = useCallback(() => {
-    sendTransaction(
-      {
-        // call yoink() on Yoink contract
-        to: "0x4bBFD120d9f352A0BEd7a014bd67913a2007a878",
-        data: "0x9846cd9efc000023c0",
-      },
-      {
-        onSuccess: (hash) => {
-          setTxHash(hash);
-        },
-      }
-    );
-  }, [sendTransaction]);
-
-  const signTyped = useCallback(() => {
-    signTypedData({
-      domain: {
-        name: "Frames v2 Demo",
-        version: "1",
-        chainId,
-      },
-      types: {
-        Message: [{ name: "content", type: "string" }],
-      },
-      message: {
-        content: "Hello from Frames v2!",
-      },
-      primaryType: "Message",
-    });
-  }, [chainId, signTypedData]);
 
   const toggleContext = useCallback(() => {
     setIsContextOpen((prev) => !prev);
@@ -327,25 +260,7 @@ store.subscribe(providerDetails => {
                 sdk.actions.openUrl
               </pre>
             </div>
-            <Button onClick={openUrl}>Open Link</Button>
-          </div>
-
-          <div className="mb-4">
-            <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg my-2">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
-                sdk.actions.openUrl
-              </pre>
-            </div>
             <Button onClick={openWarpcastUrl}>Open Warpcast Link</Button>
-          </div>
-
-          <div className="mb-4">
-            <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg my-2">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
-                sdk.actions.viewProfile
-              </pre>
-            </div>
-            <ViewProfile />
           </div>
 
           <div className="mb-4">
@@ -433,161 +348,9 @@ store.subscribe(providerDetails => {
               {isConnected ? "Disconnect" : "Connect"}
             </Button>
           </div>
-
-          <div className="mb-4">
-            <SignMessage />
-          </div>
-
-          {isConnected && (
-            <>
-              <div className="mb-4">
-                <SendEth />
-              </div>
-              <div className="mb-4">
-                <Button
-                  onClick={sendTx}
-                  disabled={!isConnected || isSendTxPending}
-                  isLoading={isSendTxPending}
-                >
-                  Send Transaction (contract)
-                </Button>
-                {isSendTxError && renderError(sendTxError)}
-                {txHash && (
-                  <div className="mt-2 text-xs">
-                    <div>Hash: {truncateAddress(txHash)}</div>
-                    <div>
-                      Status:{" "}
-                      {isConfirming
-                        ? "Confirming..."
-                        : isConfirmed
-                        ? "Confirmed!"
-                        : "Pending"}
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="mb-4">
-                <Button
-                  onClick={signTyped}
-                  disabled={!isConnected || isSignTypedPending}
-                  isLoading={isSignTypedPending}
-                >
-                  Sign Typed Data
-                </Button>
-                {isSignTypedError && renderError(signTypedError)}
-              </div>
-              <div className="mb-4">
-                <Button
-                  onClick={handleSwitchChain}
-                  disabled={isSwitchChainPending}
-                  isLoading={isSwitchChainPending}
-                >
-                  Switch to {nextChain.name}
-                </Button>
-                {isSwitchChainError && renderError(switchChainError)}
-              </div>
-            </>
-          )}
         </div>
       </div>
     </div>
-  );
-}
-
-function SignMessage() {
-  const { isConnected } = useAccount();
-  const { connectAsync } = useConnect();
-  const {
-    signMessage,
-    data: signature,
-    error: signError,
-    isError: isSignError,
-    isPending: isSignPending,
-  } = useSignMessage();
-
-  const handleSignMessage = useCallback(async () => {
-    if (!isConnected) {
-      await connectAsync({
-        chainId: base.id,
-        connector: config.connectors[0],
-      });
-    }
-
-    signMessage({ message: "Hello from Frames v2!" });
-  }, [connectAsync, isConnected, signMessage]);
-
-  return (
-    <>
-      <Button
-        onClick={handleSignMessage}
-        disabled={isSignPending}
-        isLoading={isSignPending}
-      >
-        Sign Message
-      </Button>
-      {isSignError && renderError(signError)}
-      {signature && (
-        <div className="mt-2 text-xs">
-          <div>Signature: {signature}</div>
-        </div>
-      )}
-    </>
-  );
-}
-
-function SendEth() {
-  const { isConnected, chainId } = useAccount();
-  const {
-    sendTransaction,
-    data,
-    error: sendTxError,
-    isError: isSendTxError,
-    isPending: isSendTxPending,
-  } = useSendTransaction();
-
-  const { isLoading: isConfirming, isSuccess: isConfirmed } =
-    useWaitForTransactionReceipt({
-      hash: data,
-    });
-
-  const toAddr = useMemo(() => {
-    // Protocol guild address
-    return chainId === base.id
-      ? "0x32e3C7fD24e175701A35c224f2238d18439C7dBC"
-      : "0xB3d8d7887693a9852734b4D25e9C0Bb35Ba8a830";
-  }, [chainId]);
-
-  const handleSend = useCallback(() => {
-    sendTransaction({
-      to: toAddr,
-      value: 1n,
-    });
-  }, [toAddr, sendTransaction]);
-
-  return (
-    <>
-      <Button
-        onClick={handleSend}
-        disabled={!isConnected || isSendTxPending}
-        isLoading={isSendTxPending}
-      >
-        Send Transaction (eth)
-      </Button>
-      {isSendTxError && renderError(sendTxError)}
-      {data && (
-        <div className="mt-2 text-xs">
-          <div>Hash: {truncateAddress(data)}</div>
-          <div>
-            Status:{" "}
-            {isConfirming
-              ? "Confirming..."
-              : isConfirmed
-              ? "Confirmed!"
-              : "Pending"}
-          </div>
-        </div>
-      )}
-    </>
   );
 }
 
@@ -678,46 +441,3 @@ function SignIn() {
     </>
   );
 }
-
-function ViewProfile() {
-  const [fid, setFid] = useState('3');
-
-  return (
-    <>
-      <div>
-        <Label className="text-xs font-semibold text-gray-500 mb-1" htmlFor="view-profile-fid">Fid</Label>
-        <Input
-          id="view-profile-fid"
-          type="number"
-          value={fid}
-          className="mb-2"
-          onChange={(e) => { 
-            setFid(e.target.value)
-          }}
-          step="1"
-          min="1"
-        />
-      </div>
-      <Button
-        onClick={() => { sdk.actions.viewProfile({ fid: parseInt(fid) }) }}
-      >
-        View Profile
-      </Button>
-    </>
-  );
-}
-
-const renderError = (error: Error | null) => {
-  if (!error) return null;
-  if (error instanceof BaseError) {
-    const isUserRejection = error.walk(
-      (e) => e instanceof UserRejectedRequestError
-    );
-
-    if (isUserRejection) {
-      return <div className="text-red-500 text-xs mt-1">Rejected by user.</div>;
-    }
-  }
-
-  return <div className="text-red-500 text-xs mt-1">{error.message}</div>;
-};
