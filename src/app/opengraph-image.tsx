@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Farcaster Frames V2 Demo";
+export const alt = "GLOW - Send an anonymous compliment";
 export const size = {
   width: 600,
   height: 400,

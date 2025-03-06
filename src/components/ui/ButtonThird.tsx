@@ -3,10 +3,10 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   isLoading?: boolean;
 }
 
-export function Button({ children, className = "", isLoading = false, ...props }: ButtonProps) {
+export function ButtonThird({ children, className = "", isLoading = false, ...props }: ButtonProps) {
   return (
     <button
-      className={`w-full max-w-xs mx-auto block bg-[#FFC024] text-black py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#FFDA24] hover:bg-[#FFDA24] border-2 border-[#000000] ${className}`}
+    className={`w-full max-w-xs mx-auto block bg-[#ffffff] text-black py-3 px-6 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#FFDA24] hover:bg-[#FFDA24] ${className}`}
       {...props}
     >
       {isLoading ? (

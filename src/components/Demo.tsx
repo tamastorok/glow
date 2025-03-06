@@ -3,7 +3,6 @@
 import { useEffect, useCallback, useState } from "react";
 import { signIn, signOut, getCsrfToken } from "next-auth/react";
 import sdk, {
-    AddFrame,
   FrameNotificationDetails,
   SignIn as SignInCore,
   type Context,
@@ -17,44 +16,55 @@ import {
 
 import { config } from "~/components/providers/WagmiProvider";
 import { Button } from "~/components/ui/Button";
+import { ButtonSecondary } from "~/components/ui/ButtonSecondary";
+import { ButtonThird } from "~/components/ui/ButtonThird";
 import { truncateAddress } from "~/lib/truncateAddress";
 import { useSession } from "next-auth/react"
 import { createStore } from 'mipd'
+import { db } from "~/app/firebase";
+import SendComplimentModal from "~/pages/sendComplimentModal";
+import ViewComplimentsModal from "~/pages/ViewComplimentsModal";
+import Image from "next/image";
 
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
+
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
+import { doc, getDoc, setDoc, collection, query, where, getDocs, limit } from "firebase/firestore";
 
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyAMk2mkCIy78ibJE7ZQyYpjkVJaDH-eGQ4",
-  authDomain: "daily-quiz-d128d.firebaseapp.com",
-  projectId: "daily-quiz-d128d",
-  storageBucket: "daily-quiz-d128d.firebasestorage.app",
-  messagingSenderId: "144870833977",
-  appId: "1:144870833977:web:03b10a551c152a00edf2e8"
-};
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+
+// Function to store user data
+async function storeUserData(userId: string, warpcastName: string) {
+  const userRef = doc(db, "users", userId);
+  const userDoc = await getDoc(userRef);
+
+  if (!userDoc.exists()) {
+    await setDoc(userRef, {
+      userRef: userId,
+      warpcastUsername: warpcastName,
+      complimentsSent: 0,
+      complimentsReceived: 0,
+      createdAt: new Date(),
+    });
+  }
+}
 
 
 export default function Demo(
   { title }: { title?: string } = { title: "Frames v2 Demo" }
 ) {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
-  const [context, setContext] = useState<Context.FrameContext>();
+  const [context, setContext] = useState<Context.FrameContext | null>(null);
   const [isContextOpen, setIsContextOpen] = useState(false);
 
   const [added, setAdded] = useState(false);
   const [notificationDetails, setNotificationDetails] =
     useState<FrameNotificationDetails | null>(null);
 
-  const [lastEvent, setLastEvent] = useState("");
-
-  const [addFrameResult, setAddFrameResult] = useState("");
-  const [sendNotificationResult, setSendNotificationResult] = useState("");
+  const [warpcastName, setWarpcastName] = useState<string>("Unknown Username");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [hasUnreadCompliments, setHasUnreadCompliments] = useState(false);
 
   useEffect(() => {
     setNotificationDetails(context?.client.notificationDetails ?? null);
@@ -71,37 +81,7 @@ export default function Demo(
     const load = async () => {
       const context = await sdk.context;
       setContext(context);
-      setAdded(context.client.added);
-
-      sdk.on("frameAdded", ({ notificationDetails }) => {
-        setLastEvent(
-          `frameAdded${!!notificationDetails ? ", notifications enabled" : ""}`
-        );
-
-        setAdded(true);
-        if (notificationDetails) {
-          setNotificationDetails(notificationDetails);
-        }
-      });
-
-      sdk.on("frameAddRejected", ({ reason }) => {
-        setLastEvent(`frameAddRejected, reason ${reason}`);
-      });
-
-      sdk.on("frameRemoved", () => {
-        setLastEvent("frameRemoved");
-        setAdded(false);
-        setNotificationDetails(null);
-      });
-
-      sdk.on("notificationsEnabled", ({ notificationDetails }) => {
-        setLastEvent("notificationsEnabled");
-        setNotificationDetails(notificationDetails);
-      });
-      sdk.on("notificationsDisabled", () => {
-        setLastEvent("notificationsDisabled");
-        setNotificationDetails(null);
-      });
+      setAdded(context?.client?.added ?? false);
 
       sdk.on("primaryButtonClicked", () => {
         console.log("primaryButtonClicked");
@@ -130,78 +110,63 @@ store.subscribe(providerDetails => {
     }
   }, [isSDKLoaded]);
 
+  useEffect(() => {
+    const initializeContext = async () => {
+      try {
+        const contextData = await sdk.context;
+        console.log("Context initialized:", contextData);
+        setContext(contextData);
 
-  const openWarpcastUrl = useCallback(() => {
-    sdk.actions.openUrl("https://warpcast.com/~/compose");
-  }, []);
+        // Update userId state if contextData contains user information
+        if (contextData?.user?.fid) {
+          setWarpcastName(contextData.user.username ?? "Unknown Username");
+        }
+
+        // Call storeUserData when the app is opened
+        const userId = contextData?.user?.fid?.toString() ?? "unknown";
+        const warpcastName = contextData?.user?.username ?? "unknown";
+        await storeUserData(userId, warpcastName);
+
+      } catch (error) {
+        console.error("Failed to initialize context:", error);
+      }
+    };
+
+    initializeContext();
+  }, []); // Empty dependency array ensures this runs once on mount
+
+  useEffect(() => {
+    const checkUnreadCompliments = async () => {
+      if (context?.user?.username) {
+        try {
+          const complimentsRef = collection(db, "compliments");
+          const q = query(
+            complimentsRef, 
+            where("receiver", "==", context.user.username),
+            where("isRead", "==", false),
+            limit(1)
+          );
+          const querySnapshot = await getDocs(q);
+          console.log("Unread check:", !querySnapshot.empty); // Debug log
+          setHasUnreadCompliments(!querySnapshot.empty);
+        } catch (error) {
+          console.error("Error checking unread compliments:", error);
+        }
+      }
+    };
+
+    checkUnreadCompliments();
+  }, [context]); // Add context as a dependency
 
   const close = useCallback(() => {
     sdk.actions.close();
   }, []);
 
-  const addFrame = useCallback(async () => {
-    try {
-      setNotificationDetails(null);
-
-      const result = await sdk.actions.addFrame();
-
-      if (result.notificationDetails) {
-        setNotificationDetails(result.notificationDetails);
-      }
-      setAddFrameResult(
-        result.notificationDetails
-          ? `Added, got notificaton token ${result.notificationDetails.token} and url ${result.notificationDetails.url}`
-          : "Added, got no notification details"
-      );
-    } catch (error) {
-      if (error instanceof AddFrame.RejectedByUser) {
-        setAddFrameResult(`Not added: ${error.message}`);
-      }
-      
-      if (error instanceof AddFrame.InvalidDomainManifest) {
-        setAddFrameResult(`Not added: ${error.message}`);
-      }
-
-      setAddFrameResult(`Error: ${error}`);
-    }
-  }, []);
-
-  const sendNotification = useCallback(async () => {
-    setSendNotificationResult("");
-    if (!notificationDetails || !context) {
-      return;
-    }
-
-    try {
-      const response = await fetch("/api/send-notification", {
-        method: "POST",
-        mode: "same-origin",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fid: context.user.fid,
-          notificationDetails,
-        }),
-      });
-
-      if (response.status === 200) {
-        setSendNotificationResult("Success");
-        return;
-      } else if (response.status === 429) {
-        setSendNotificationResult("Rate limited");
-        return;
-      }
-
-      const data = await response.text();
-      setSendNotificationResult(`Error: ${data}`);
-    } catch (error) {
-      setSendNotificationResult(`Error: ${error}`);
-    }
-  }, [context, notificationDetails]);
-
 
   const toggleContext = useCallback(() => {
     setIsContextOpen((prev) => !prev);
   }, []);
+
 
   if (!isSDKLoaded) {
     return <div>Loading...</div>;
@@ -214,10 +179,53 @@ store.subscribe(providerDetails => {
       paddingLeft: context?.client.safeAreaInsets?.left ?? 0,
       paddingRight: context?.client.safeAreaInsets?.right ?? 0 ,
     }}>
-      <div className="w-[300px] mx-auto py-2 px-2">
+      <header className="flex items-center justify-center gap-2 py-4 pt-11">
+        <Image 
+          src="/icon.png" 
+          alt="Glow Logo" 
+          className="h-6 w-6"
+          width={24}
+          height={24}
+        />
+        <span className="text-xl">GLOW</span>
+        <sup className="text-xs text-gray-500">Beta</sup>
+      </header>
+        <div className="w-[300px] mx-auto py-2 px-2">
+          
+
+        <h2 className="text-xl font-bold text-center full-width">Send <span className="underline">anonym</span> compliments</h2>
+        <div className="mb-4 text-center">...to anyone on Warpcast.</div>
+        <h2 className="font-medium font-bold mb-10 text-center">Hello, <span style={{fontWeight: "bold"}}>{warpcastName}</span>.</h2>
+
         <h1 className="text-2xl font-bold text-center mb-4">{title}</h1>
 
         <div className="mb-4">
+          <p className="text-center mb-2">Brighten someone&apos;s day! ✉️</p>
+          <Button onClick={() => setIsModalOpen(true)} className="font-bold">
+            Send
+          </Button>
+          <br />
+          <p className="text-center mb-2">View your compliments 👇</p>
+          <ButtonSecondary 
+            onClick={() => setIsViewModalOpen(true)} 
+            className="relative inline-block font-bold"
+          >
+            View
+            {hasUnreadCompliments && (
+              <span className="absolute -right-2 -top-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full z-10">
+                NEW
+              </span>
+            )}
+          </ButtonSecondary>
+          <br />
+          <div className="mb-4">
+          <br />
+
+            <ButtonThird onClick={close} className="font-bold">Close Frame</ButtonThird>
+          </div>
+
+
+
           <h2 className="font-2xl font-bold">Context</h2>
           <button
             onClick={toggleContext}
@@ -246,79 +254,7 @@ store.subscribe(providerDetails => {
           <h2 className="font-2xl font-bold">Actions</h2>
 
           <div className="mb-4">
-            <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg my-2">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
-                sdk.actions.signIn
-              </pre>
-            </div>
             <SignIn />
-          </div>
-
-          <div className="mb-4">
-            <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg my-2">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
-                sdk.actions.openUrl
-              </pre>
-            </div>
-            <Button onClick={openWarpcastUrl}>Open Warpcast Link</Button>
-          </div>
-
-          <div className="mb-4">
-            <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg my-2">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
-                sdk.actions.close
-              </pre>
-            </div>
-            <Button onClick={close}>Close Frame</Button>
-          </div>
-        </div>
-
-        <div className="mb-4">
-          <h2 className="font-2xl font-bold">Last event</h2>
-
-          <div className="p-4 mt-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-            <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
-              {lastEvent || "none"}
-            </pre>
-          </div>
-        </div>
-
-        <div>
-          <h2 className="font-2xl font-bold">Add to client & notifications</h2>
-
-          <div className="mt-2 mb-4 text-sm">
-            Client fid {context?.client.clientFid},
-            {added ? " frame added to client," : " frame not added to client,"}
-            {notificationDetails
-              ? " notifications enabled"
-              : " notifications disabled"}
-          </div>
-
-          <div className="mb-4">
-            <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg my-2">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
-                sdk.actions.addFrame
-              </pre>
-            </div>
-            {addFrameResult && (
-              <div className="mb-2 text-sm">
-                Add frame result: {addFrameResult}
-              </div>
-            )}
-            <Button onClick={addFrame} disabled={added}>
-              Add frame to client
-            </Button>
-          </div>
-
-          {sendNotificationResult && (
-            <div className="mb-2 text-sm">
-              Send notification result: {sendNotificationResult}
-            </div>
-          )}
-          <div className="mb-4">
-            <Button onClick={sendNotification} disabled={!notificationDetails}>
-              Send notification
-            </Button>
           </div>
         </div>
 
@@ -337,6 +273,7 @@ store.subscribe(providerDetails => {
             </div>
           )}
 
+
           <div className="mb-4">
             <Button
               onClick={() =>
@@ -349,6 +286,18 @@ store.subscribe(providerDetails => {
             </Button>
           </div>
         </div>
+
+        <SendComplimentModal 
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          context={context}
+        />
+        
+        <ViewComplimentsModal 
+          isOpen={isViewModalOpen}
+          onClose={() => setIsViewModalOpen(false)}
+          context={context}
+        />
       </div>
     </div>
   );
@@ -373,6 +322,8 @@ function SignIn() {
       setSignInFailure(undefined);
       const nonce = await getNonce();
       const result = await sdk.actions.signIn({ nonce });
+
+
       setSignInResult(result);
 
       await signIn("credentials", {
@@ -380,6 +331,7 @@ function SignIn() {
         signature: result.signature,
         redirect: false,
       });
+
     } catch (e) {
       if (e instanceof SignInCore.RejectedByUser) {
         setSignInFailure("Rejected by user");
@@ -441,3 +393,9 @@ function SignIn() {
     </>
   );
 }
+
+// Instead, create a function to call your API
+const fetchNeynarData = async () => {
+  const response = await fetch('/api/neynar');
+  return response.json();
+};

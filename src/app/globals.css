@@ -25,6 +25,14 @@ body {
   -ms-overflow-style: none; /* IE and Edge */
 }
 
+
+.underline {
+  text-decoration: underline;
+  text-decoration-color: #FFC024;
+  text-decoration-thickness: 3px;
+  text-underline-offset: 2px;
+}
+
 *::-webkit-scrollbar {
   display: none;
 }
