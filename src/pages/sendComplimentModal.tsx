@@ -259,7 +259,7 @@ export default function SendComplimentModal({ isOpen, onClose, context }: SendCo
                     onClick={() => handleSelectUser(user.username)}
                   >
                     <Image
-                      src={user.pfp_url}
+                      src={user.pfp_url || "/default-avatar.png"}
                       alt={user.display_name}
                       className="w-8 h-8 rounded-full"
                       width={32}

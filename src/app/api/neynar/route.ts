@@ -6,11 +6,11 @@ const client = new NeynarAPIClient({
 
 export async function GET(
   request: Request,
-  { params }: { params: { fid: string } }
+  { params }: { params: Record<string, string> }
 ) {
   try {
-    const fid = parseInt(params.fid);
-    const user = await client.getUser({ fid });
+    const { fid } = params;
+    const user = await client.getUser({ fid: parseInt(fid) });
     return Response.json(user);
   } catch (error) {
     console.error('Error fetching user:', error);

@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   images: {
-    domains: ['imagedelivery.net', 'i.imgur.com'],
+    domains: ['imagedelivery.net', 'i.imgur.com','avatars.steamstatic.com','lh3.googleusercontent.com','openseauserdata.com'],
   },
 };
 
