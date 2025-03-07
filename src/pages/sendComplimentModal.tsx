@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "~/components/ui/Button";
 import { ButtonSecondary } from "~/components/ui/ButtonSecondary";
+import { ButtonMonetization } from "~/components/ui/ButtonMonetization";
 import { doc, setDoc, collection, query, where, getDocs, Timestamp } from "firebase/firestore";
 import { db } from "~/app/firebase";
 import { type Context } from "@farcaster/frame-sdk";
@@ -222,9 +223,17 @@ export default function SendComplimentModal({ isOpen, onClose, context }: SendCo
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Send compliment</h2>
         </div>
-        <p className="text-sm text-gray-500">
-            {dailyCount}/10 compliments sent today
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="text-sm text-gray-500">
+              {dailyCount}/10 compliments sent today. Unlock for:
+          </p>
+          {dailyCount >= 10 && (
+            <ButtonMonetization
+            >
+              0.99$
+            </ButtonMonetization>
+          )}
+        </div>
         
         <div className="flex-1 overflow-y-auto">
           <div className="mb-4 relative">

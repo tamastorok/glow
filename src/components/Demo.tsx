@@ -315,34 +315,54 @@ function SignIn() {
   const { data: session, status } = useSession()
 
   const getNonce = useCallback(async () => {
-    const nonce = await getCsrfToken();
-    if (!nonce) throw new Error("Unable to generate nonce");
-    return nonce;
+    try {
+      const nonce = await getCsrfToken();
+      if (!nonce) throw new Error("Unable to generate nonce");
+      return nonce;
+    } catch (error) {
+      console.error("Error getting nonce:", error);
+      setSignInFailure("Failed to initialize sign-in. Please try again.");
+      return null;
+    }
   }, []);
 
   const handleSignIn = useCallback(async () => {
     try {
       setSigningIn(true);
       setSignInFailure(undefined);
+      
       const nonce = await getNonce();
+      if (!nonce) {
+        setSigningIn(false);
+        return;
+      }
+
+      console.log("Starting Farcaster sign-in with nonce:", nonce);
       const result = await sdk.actions.signIn({ nonce });
-
-
+      console.log("Farcaster sign-in result:", result);
       setSignInResult(result);
 
-      await signIn("credentials", {
+      console.log("Starting NextAuth sign-in with credentials");
+      const signInResponse = await signIn("credentials", {
         message: result.message,
         signature: result.signature,
         redirect: false,
       });
+      console.log("NextAuth sign-in response:", signInResponse);
+
+      if (signInResponse?.error) {
+        console.error("NextAuth sign-in error:", signInResponse.error);
+        setSignInFailure(`Authentication failed: ${signInResponse.error}`);
+      }
 
     } catch (e) {
       if (e instanceof SignInCore.RejectedByUser) {
-        setSignInFailure("Rejected by user");
+        console.log("User rejected the sign-in request");
+        setSignInFailure("Sign-in was cancelled by user");
         return;
-      }
-
-      setSignInFailure("Unknown error");
+      };
+      
+      setSignInFailure("An unexpected error occurred. Please try again.");
     } finally {
       setSigningIn(false);
     }
@@ -353,6 +373,9 @@ function SignIn() {
       setSigningOut(true);
       await signOut({ redirect: false }) 
       setSignInResult(undefined);
+    } catch (error) {
+      console.error("Sign-out error:", error);
+      setSignInFailure("Failed to sign out. Please try again.");
     } finally {
       setSigningOut(false);
     }
@@ -397,3 +420,4 @@ function SignIn() {
     </>
   );
 }
+

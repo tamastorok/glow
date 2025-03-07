@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { ButtonThird } from "~/components/ui/ButtonThird";
+import { ButtonMonetization } from "~/components/ui/ButtonMonetization";
 import { type Context } from "@farcaster/frame-sdk";
 import { db } from "~/app/firebase";
 import { collection, query, where, getDocs, doc, updateDoc, getDoc } from "firebase/firestore";
@@ -195,46 +196,58 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
 
         <div className="flex-1 overflow-y-auto">
           {activeTab === "Received" && (
-            <ul className="space-y-2">
-              {loading ? (
-                <li>Loading...</li>
-              ) : receivedCompliments.length > 0 ? (
-                receivedCompliments.map((compliment, index) => (
-                  <li 
-                    key={index}
-                        className={`p-2 border-2 border-[#000000] rounded cursor-pointer transition-all duration-200  ${
-                        selectedIndex === index 
-                        ? "bg-[#FFD56F] dark:bg-gray-700" 
-                        : !compliment.isRead
-                        ? "bg-[#FFD56F]"
-                        : "hover:bg-gray-100 dark:hover:bg-gray-700"
-                    } ${!compliment.isRead ? "border-l-4 border-l-blue-500" : ""}`}
-                    onClick={() => handleComplimentClick(compliment, index)}
-                  >
-                    <div className="flex justify-between items-center">
-                      <p className="font-medium">You received a secret compliment!</p>
-                      {!compliment.isRead && (
-                        <span className="text-xs font-bold text-white bg-red-500 px-2 py-1 rounded">NEW</span>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500 mt-2">{compliment.timestamp?.toLocaleDateString()}</p>
+            <div>
+              <div>
+                <div className="flex items-center gap-1 text-sm text-gray-500">
+                  <span>Unlock for</span>
+                  <ButtonMonetization>0.99$</ButtonMonetization>
+                  <span>to read all compliments!</span>
+                </div>
+              </div>
+              <br></br>
+              <ul className="space-y-2">
+                {loading ? (
+                  <li>Loading...</li>
+                ) : receivedCompliments.length > 0 ? (
+                  receivedCompliments.map((compliment, index) => (
+                    <li 
+                      key={index}
+                          className={`p-2 border-2 border-[#000000] rounded cursor-pointer transition-all duration-200  ${
+                          selectedIndex === index 
+                          ? "bg-[#FFD56F] dark:bg-gray-700" 
+                          : !compliment.isRead
+                          ? "bg-[#FFD56F]"
+                          : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                      } ${!compliment.isRead ? "border-l-4 border-l-blue-500" : ""}`}
+                      onClick={() => handleComplimentClick(compliment, index)}
+                    >
+
+                      <div className="flex justify-between items-center">
+
+                        <p className="font-medium">You received a secret compliment!</p>
+                        {!compliment.isRead && (
+                          <span className="text-xs font-bold text-white bg-red-500 px-2 py-1 rounded">NEW</span>
+                        )}
                       </div>
-                    {selectedIndex === index && (
-                      <>
-                        <p className="mt-1 text-gray-500 dark:text-gray-300 p-3 bg-white dark:bg-gray-800 rounded border border-blue-200 dark:border-gray-600">
-                          {compliment.compliment}
+                      <div>
+                        <p className="text-sm text-gray-500 mt-2">{compliment.timestamp?.toLocaleDateString()}</p>
+                        </div>
+                      {selectedIndex === index && (
+                        <>
+                          <p className="mt-1 text-gray-500 dark:text-gray-300 p-3 bg-white dark:bg-gray-800 rounded border border-blue-200 dark:border-gray-600">
+                            {compliment.compliment}
 
-                        </p>
-                      </>
-                    )}
+                          </p>
+                        </>
+                      )}
 
-                  </li>
-                ))
-              ) : (
-                <li>No compliments received yet</li>
-              )}
-            </ul>
+                    </li>
+                  ))
+                ) : (
+                  <li>No compliments received yet</li>
+                )}
+              </ul>
+            </div>
           )}
           {activeTab === "Sent" && (
             <ul className="space-y-2">
