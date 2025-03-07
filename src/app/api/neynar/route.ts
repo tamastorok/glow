@@ -6,7 +6,7 @@ const client = new NeynarAPIClient({
 
 export async function GET(
   request: Request,
-  { params }: { params: Record<string, string> }
+  { params }: { params: { fid: string } }
 ) {
   try {
     const { fid } = params;
