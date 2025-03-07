@@ -3,7 +3,6 @@
 import { useEffect, useCallback, useState } from "react";
 import { signIn, signOut, getCsrfToken } from "next-auth/react";
 import sdk, {
-  FrameNotificationDetails,
   SignIn as SignInCore,
   type Context,
 } from "@farcaster/frame-sdk";
@@ -57,18 +56,18 @@ export default function Demo(
   const [context, setContext] = useState<Context.FrameContext | null>(null);
   const [isContextOpen, setIsContextOpen] = useState(false);
 
-  const [added, setAdded] = useState(false);
-  const [notificationDetails, setNotificationDetails] =
-    useState<FrameNotificationDetails | null>(null);
+  //const [added, setAdded] = useState(false);
+ // const [notificationDetails, setNotificationDetails] =
+ //   useState<FrameNotificationDetails | null>(null);
 
   const [warpcastName, setWarpcastName] = useState<string>("Unknown Username");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [hasUnreadCompliments, setHasUnreadCompliments] = useState(false);
 
-  useEffect(() => {
-    setNotificationDetails(context?.client.notificationDetails ?? null);
-  }, [context]);
+  // useEffect(() => {
+  //   setNotificationDetails(context?.client.notificationDetails ?? null);
+  // }, [context]);
 
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
@@ -79,27 +78,32 @@ export default function Demo(
 
   useEffect(() => {
     const load = async () => {
-      const context = await sdk.context;
-      setContext(context);
-      setAdded(context?.client?.added ?? false);
+      try {
+        const context = await sdk.context;
+        setContext(context);
+        //setAdded(context?.client?.added ?? false);
 
-      sdk.on("primaryButtonClicked", () => {
-        console.log("primaryButtonClicked");
-      });
+        sdk.on("primaryButtonClicked", () => {
+          console.log("primaryButtonClicked");
+        });
 
-      console.log("Calling ready");
-      sdk.actions.ready({});
+        console.log("Calling ready");
+        await sdk.actions.ready();
 
-// Set up a MIPD Store, and request Providers.
-const store = createStore()
+        // Set up a MIPD Store, and request Providers.
+        const store = createStore();
 
-// Subscribe to the MIPD Store.
-store.subscribe(providerDetails => {
-  console.log("PROVIDER DETAILS", providerDetails)
-  // => [EIP6963ProviderDetail, EIP6963ProviderDetail, ...]
-})
-
+        // Subscribe to the MIPD Store.
+        store.subscribe(providerDetails => {
+          console.log("PROVIDER DETAILS", providerDetails);
+          // => [EIP6963ProviderDetail, EIP6963ProviderDetail, ...]
+        });
+      } catch (error) {
+        console.error("Error initializing SDK:", error);
+        // Handle the error appropriately - you might want to show an error message to the user
+      }
     };
+
     if (sdk && !isSDKLoaded) {
       console.log("Calling load");
       setIsSDKLoaded(true);
@@ -393,9 +397,3 @@ function SignIn() {
     </>
   );
 }
-
-// Instead, create a function to call your API
-const fetchNeynarData = async () => {
-  const response = await fetch('/api/neynar');
-  return response.json();
-};

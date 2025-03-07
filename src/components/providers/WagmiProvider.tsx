@@ -3,6 +3,8 @@ import { base, degen, mainnet, optimism } from "wagmi/chains";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { farcasterFrame } from "@farcaster/frame-wagmi-connector";
 
+const queryClient = new QueryClient();
+
 export const config = createConfig({
   chains: [base, optimism, mainnet, degen],
   transports: {
@@ -13,8 +15,6 @@ export const config = createConfig({
   },
   connectors: [farcasterFrame()],
 });
-
-const queryClient = new QueryClient();
 
 export default function Provider({ children }: { children: React.ReactNode }) {
   return (

@@ -8,6 +8,7 @@ import { db } from "~/app/firebase";
 import { type Context } from "@farcaster/frame-sdk";
 import Image from "next/image";
 import { createCast } from "~/lib/neynar";
+import { containsProfanity } from "~/utils/profanityFilter";
 
 interface User {
   fid: number;
@@ -143,6 +144,16 @@ export default function SendComplimentModal({ isOpen, onClose, context }: SendCo
         return;
       }
 
+      // Check for profanity
+      const profanityCheck = containsProfanity(compliment);
+      if (profanityCheck.hasProfanity) {
+        setStatusMessage({ 
+          type: 'error', 
+          text: 'Please keep your compliment appropriate and kind!' 
+        });
+        return;
+      }
+
       if (dailyCount >= 10) {
         setStatusMessage({ type: 'error', text: 'You have reached the daily limit of 10 compliments. Please try again tomorrow!' });
         return;
@@ -207,7 +218,7 @@ export default function SendComplimentModal({ isOpen, onClose, context }: SendCo
             </div>
           </div>
         </header>
-
+        
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Send compliment</h2>
         </div>
@@ -247,10 +258,12 @@ export default function SendComplimentModal({ isOpen, onClose, context }: SendCo
                     className="flex items-center gap-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer"
                     onClick={() => handleSelectUser(user.username)}
                   >
-                    <img
+                    <Image
                       src={user.pfp_url}
                       alt={user.display_name}
                       className="w-8 h-8 rounded-full"
+                      width={32}
+                      height={32}
                     />
                     <div>
                       <div className="font-medium">{user.display_name}</div>
@@ -290,9 +303,9 @@ export default function SendComplimentModal({ isOpen, onClose, context }: SendCo
             <Button 
               onClick={handleSendCompliment} 
               className="flex-1"
-              disabled={dailyCount >= 5}
+              disabled={dailyCount >= 10}
             >
-              {dailyCount >= 5 ? 'Limit Reached' : 'Send'}
+              {dailyCount >= 10 ? 'Limit Reached' : 'Send'}
             </Button>
           </div>
         </div>
