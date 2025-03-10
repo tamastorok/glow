@@ -293,7 +293,7 @@ export default function Demo(
         {/* Footer */}
         <footer className="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
           <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-            <p>Made by <a href="https://warpcast.com/tamastorok.eth" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline">@torok_tomi</a>. Icon by <a href="https://www.flaticon.com/authors/najmunnahar" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-600 underline">NajmunNahar</a>.</p>
+            <p>Made by <a href="https://warpcast.com/tamastorok.eth" target="_blank" rel="noopener noreferrer" className=" hover:text-blue-600">@torok_tomi</a>. Icon by <a href="https://www.flaticon.com/authors/najmunnahar" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600">NajmunNahar</a>.</p>
           </div>
         </footer>
 
