@@ -1115,10 +1115,10 @@
   resolved "https://registry.npmjs.org/@next/swc-darwin-x64/-/swc-darwin-x64-15.0.3.tgz"
   integrity sha512-Zxl/TwyXVZPCFSf0u2BNj5sE0F2uR6iSKxWpq4Wlk/Sv9Ob6YCKByQTkV2y6BCic+fkabp9190hyrDdPA/dNrw==
 
-"@neynar/nodejs-sdk@^2.17.0":
-  version "2.17.0"
-  resolved "https://registry.npmjs.org/@neynar/nodejs-sdk/-/nodejs-sdk-2.17.0.tgz"
-  integrity sha512-qzpTvaM90Oq72UOkJhfxu5o35HvQVCe98BHfnNf9dSCgkw6eoLYw5wHkZ01E4LDrE8jY6/NmdWMZWUFcbL/jBw==
+"@neynar/nodejs-sdk@^2.19.0":
+  version "2.19.0"
+  resolved "https://registry.npmjs.org/@neynar/nodejs-sdk/-/nodejs-sdk-2.19.0.tgz"
+  integrity sha512-T9zpr9KWbfpfBuAJlKt7p8PcDWxxtdDjRX0bI/bfzEZLSu5acQA7br+x1PRiOKtUt1loGkTYwhXmtrHzAXAO9A==
   dependencies:
     "@openapitools/openapi-generator-cli" "^2.14.1"
     semver "^7.6.3"
