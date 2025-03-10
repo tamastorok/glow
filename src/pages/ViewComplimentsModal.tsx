@@ -2,11 +2,16 @@
 
 import React, { useState, useEffect } from "react";
 import { ButtonThird } from "~/components/ui/ButtonThird";
-import { ButtonMonetization } from "~/components/ui/ButtonMonetization";
-import { type Context } from "@farcaster/frame-sdk";
+import { type Context,  } from "@farcaster/frame-sdk";
 import { db } from "~/app/firebase";
 import { collection, query, where, getDocs, doc, updateDoc, getDoc } from "firebase/firestore";
 import Image from "next/image";
+
+import { baseUSDC } from '@daimo/contract'
+import { DaimoPayButton } from '@daimo/pay'
+import { getAddress } from 'viem'
+
+
 interface ViewComplimentsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -20,6 +25,7 @@ interface Compliment {
   timestamp: Date;
   isRead: boolean;
   complimentID: string;
+  rating?: number; // Optional rating field
 }
 
 export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewComplimentsModalProps) {
@@ -151,6 +157,22 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
     }
   };
 
+  const handleRatingClick = async (compliment: Compliment, rating: number, index: number) => {
+    try {
+      const complimentRef = doc(db, "compliments", compliment.complimentID);
+      await updateDoc(complimentRef, {
+        rating: rating
+      });
+      
+      // Update local state
+      const updatedCompliments = [...receivedCompliments];
+      updatedCompliments[index] = { ...compliment, rating };
+      setReceivedCompliments(updatedCompliments);
+    } catch (error) {
+      console.error("Error updating compliment rating:", error);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -172,6 +194,7 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
           </div>
           <div className="flex justify-end col-start-3">
             <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl">×</button>
+
           </div>
         </div>
       </header>
@@ -200,8 +223,20 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
               <div>
                 <div className="flex items-center gap-1 text-sm text-gray-500">
                   <span>Unlock for</span>
-                  <ButtonMonetization>0.99$</ButtonMonetization>
-                  <span>to read all compliments!</span>
+                  <DaimoPayButton.Custom
+      appId="pay-demo" /* Example app ID you can use for prototyping */
+      toChain={8453}
+      toUnits="0.99"
+      toToken={getAddress(baseUSDC.token)}
+      toAddress="0xAbE4976624c9A6c6Ce0D382447E49B7feb639565"
+      onPaymentStarted={(e) => console.log(e)}
+      onPaymentCompleted={(e) => console.log(e)}
+      paymentOptions={["Coinbase"]}
+      preferredChains={[8453]}
+      >
+      {({ show }) => <button onClick={show} style={{ backgroundColor: "#FFC024", color: "#000000", borderRadius: "5px", padding: "5px 10px" }}>0.99$</button>}
+    </DaimoPayButton.Custom>
+    <span>to read all compliments!</span>
                 </div>
               </div>
               <br></br>
@@ -214,9 +249,9 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
                       key={index}
                           className={`p-2 border-2 border-[#000000] rounded cursor-pointer transition-all duration-200  ${
                           selectedIndex === index 
-                          ? "bg-[#FFD56F] dark:bg-gray-700" 
+                          ? "bg-[#FFF] dark:bg-[#F1f1f1]" 
                           : !compliment.isRead
-                          ? "bg-[#FFD56F]"
+                          ? "bg-[#FFF]"
                           : "hover:bg-gray-100 dark:hover:bg-gray-700"
                       } ${!compliment.isRead ? "border-l-4 border-l-blue-500" : ""}`}
                       onClick={() => handleComplimentClick(compliment, index)}
@@ -236,8 +271,32 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
                         <>
                           <p className="mt-1 text-gray-500 dark:text-gray-300 p-3 bg-white dark:bg-gray-800 rounded border border-blue-200 dark:border-gray-600">
                             {compliment.compliment}
-
                           </p>
+                          <div className="mt-3 flex items-center gap-1">
+                            <p className="text-gray-500">Rate it: </p>
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              
+                              <button
+                                key={star}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRatingClick(compliment, star, index);
+                                }}
+                                className={`text-2xl ${
+                                  compliment.rating && star <= compliment.rating
+                                    ? "text-yellow-400"
+                                    : "text-gray-300"
+                                } hover:text-yellow-400 transition-colors`}
+                              >
+                                ★
+                              </button>
+                            ))}
+                            {compliment.rating && (
+                              <span className="ml-2 text-sm text-gray-500">
+                                ({compliment.rating}/5)
+                              </span>
+                            )}
+                          </div>
                         </>
                       )}
 

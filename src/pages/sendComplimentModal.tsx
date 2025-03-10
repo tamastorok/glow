@@ -3,13 +3,17 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "~/components/ui/Button";
 import { ButtonSecondary } from "~/components/ui/ButtonSecondary";
-import { ButtonMonetization } from "~/components/ui/ButtonMonetization";
 import { doc, setDoc, collection, query, where, getDocs, Timestamp } from "firebase/firestore";
 import { db } from "~/app/firebase";
 import { type Context } from "@farcaster/frame-sdk";
 import Image from "next/image";
 import { createCast } from "~/lib/neynar";
 import { containsProfanity } from "~/utils/profanityFilter";
+
+import { baseUSDC } from '@daimo/contract'
+import { DaimoPayButton } from '@daimo/pay'
+import { getAddress } from 'viem'
+
 
 interface User {
   fid: number;
@@ -225,13 +229,25 @@ export default function SendComplimentModal({ isOpen, onClose, context }: SendCo
         </div>
         <div className="flex items-center gap-2">
           <p className="text-sm text-gray-500">
-              {dailyCount}/10 compliments sent today. Unlock for:
+              {dailyCount}/10 compliments sent today.
           </p>
           {dailyCount >= 10 && (
-            <ButtonMonetization
-            >
-              0.99$
-            </ButtonMonetization>
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <p>Unlock for:</p>
+              <DaimoPayButton.Custom
+      appId="pay-demo" /* Example app ID you can use for prototyping */
+      toChain={8453}
+      toUnits="0.99"
+      toToken={getAddress(baseUSDC.token)}
+      toAddress="0xAbE4976624c9A6c6Ce0D382447E49B7feb639565"
+      onPaymentStarted={(e) => console.log(e)}
+      onPaymentCompleted={(e) => console.log(e)}
+      paymentOptions={["Coinbase"]}
+      preferredChains={[8453]}
+      >
+      {({ show }) => <button onClick={show} style={{ backgroundColor: "#FFC024", color: "#000000", borderRadius: "5px", padding: "5px 10px" }}>0.99$</button>}
+    </DaimoPayButton.Custom>
+            </div>
           )}
         </div>
         
