@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "GLOW - Send an anonymous compliment";
+export const alt = "GLOW - Send anonymous compliments";
 export const size = {
   width: 600,
   height: 400,

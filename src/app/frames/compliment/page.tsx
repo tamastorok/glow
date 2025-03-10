@@ -8,20 +8,10 @@ const frame = {
   imageUrl: `${appUrl}/frames/compliment/opengraph-image`,
   buttons: [
     {
-      label: "Send Compliment",
+      label: "Start",
       action: "post",
       target: `${appUrl}/frames/compliment`,
     },
-    {
-      label: "View Compliments",
-      action: "post",
-      target: `${appUrl}/frames/compliment`,
-    },
-    {
-      label: "Close",
-      action: "post",
-      target: `${appUrl}/frames/compliment`,
-    }
   ],
 };
 
