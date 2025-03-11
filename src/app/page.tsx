@@ -22,9 +22,9 @@ export const revalidate = 300;
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: "GLOW - Send an anonymous compliment",
+    title: "GLOW - Send anonymous compliments",
     openGraph: {
-      title: "GLOW - Send an anonymous compliment",
+      title: "GLOW - Send anonymous compliments",
       description: "Send anonymous compliments to anyone on Warpcast.",
     },
     other: {

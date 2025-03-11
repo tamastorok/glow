@@ -28,5 +28,5 @@ export const metadata: Metadata = {
 };
 
 export default function ComplimentFrame() {
-  return <Demo title="GLOW - Send anonymous compliments" />;
+  return <Demo/>;
 } 
