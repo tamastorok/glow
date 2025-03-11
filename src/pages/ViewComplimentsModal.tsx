@@ -11,7 +11,6 @@ import { baseUSDC } from '@daimo/contract'
 import { DaimoPayButton } from '@daimo/pay'
 import { getAddress } from 'viem'
 
-
 interface ViewComplimentsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -35,87 +34,76 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
   const [loading, setLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
+  // Calculate compliments sent in last 24h from sentCompliments
+  const complimentsSentLast24h = sentCompliments.filter(compliment => {
+    const last24h = new Date();
+    last24h.setHours(last24h.getHours() - 24);
+    return compliment.timestamp >= last24h;
+  }).length;
+
+  // Function to get number of viewable compliments based on sent compliments
+  const getViewableComplimentsCount = (sentCount: number) => {
+    return sentCount >= 2 ? Infinity : 0; // Can view all compliments if sent 2 or more, otherwise none
+  };
+
+  // Fetch both sent and received compliments when modal opens
   useEffect(() => {
-    if (isOpen) {
-      setActiveTab("Received");
-      fetchReceivedCompliments();
-    }
+    const fetchData = async () => {
+      if (isOpen && context?.user?.username) {
+        setLoading(true);
+        try {
+          // Fetch sent compliments
+          const sentQuery = query(
+            collection(db, "compliments"),
+            where("sender", "==", context.user.username)
+          );
+          
+          const sentSnapshot = await getDocs(sentQuery);
+          const sentDocs = sentSnapshot.docs.map(doc => ({
+            ...doc.data(),
+            complimentID: doc.id,
+            timestamp: doc.data().timestamp?.toDate(),
+          })) as Compliment[];
+          
+          // Sort by timestamp (newest first)
+          const sortedSentCompliments = sentDocs.sort((a, b) => 
+            (b.timestamp?.getTime() ?? 0) - (a.timestamp?.getTime() ?? 0)
+          );
+          setSentCompliments(sortedSentCompliments);
+
+          // Fetch received compliments
+          const receivedQuery = query(
+            collection(db, "compliments"),
+            where("receiver", "==", context.user.username)
+          );
+          
+          const receivedSnapshot = await getDocs(receivedQuery);
+          const receivedDocs = receivedSnapshot.docs.map(doc => ({
+            ...doc.data(),
+            complimentID: doc.id,
+            timestamp: doc.data().timestamp?.toDate(),
+          })) as Compliment[];
+          
+          // Sort by timestamp (newest first)
+          const sortedReceivedCompliments = receivedDocs.sort((a, b) => 
+            (b.timestamp?.getTime() ?? 0) - (a.timestamp?.getTime() ?? 0)
+          );
+          setReceivedCompliments(sortedReceivedCompliments);
+        } catch (error) {
+          console.error("Error fetching compliments:", error);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchData();
   }, [isOpen, context?.user?.username]);
 
-  const fetchReceivedCompliments = async () => {
-    if (!context?.user?.username) return;
-    
-    setLoading(true);
-    try {
-      const q = query(
-        collection(db, "compliments"),
-        where("receiver", "==", context.user.username)
-      );
-      
-      const querySnapshot = await getDocs(q);
-      console.log('Fetched compliments:', querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        data: doc.data()
-      })));
-      
-      const compliments = querySnapshot.docs.map(doc => ({
-        ...doc.data(),
-        complimentID: doc.id,
-        timestamp: doc.data().timestamp?.toDate(),
-      })) as Compliment[];
-      
-      // Sort compliments by timestamp in descending order (newest first)
-      const sortedCompliments = compliments.sort((a, b) => 
-        (b.timestamp?.getTime() ?? 0) - (a.timestamp?.getTime() ?? 0)
-      );
-      
-      console.log('Processed compliments:', sortedCompliments);
-      setReceivedCompliments(sortedCompliments);
-    } catch (error) {
-      console.error("Error fetching received compliments:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchSentCompliments = async () => {
-    if (!context?.user?.username) return;
-    
-    setLoading(true);
-    try {
-      const q = query(
-        collection(db, "compliments"),
-        where("sender", "==", context.user.username)
-      );
-      
-      const querySnapshot = await getDocs(q);
-      const compliments = querySnapshot.docs.map(doc => ({
-        ...doc.data(),
-        complimentID: doc.id,
-        timestamp: doc.data().timestamp?.toDate(),
-      })) as Compliment[];
-      
-      // Sort compliments by timestamp in descending order (newest first)
-      const sortedCompliments = compliments.sort((a, b) => 
-        (b.timestamp?.getTime() ?? 0) - (a.timestamp?.getTime() ?? 0)
-      );
-      
-      setSentCompliments(sortedCompliments);
-    } catch (error) {
-      console.error("Error fetching sent compliments:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Reset selection when changing tabs
   useEffect(() => {
-    setSelectedIndex(null); // Reset selection when changing tabs
-    if (activeTab === "Sent") {
-      fetchSentCompliments();
-    } else if (activeTab === "Received") {
-      fetchReceivedCompliments();
-    }
-  }, [activeTab, context?.user?.username]);
+    setSelectedIndex(null);
+  }, [activeTab]);
 
   const handleComplimentClick = async (compliment: Compliment, index: number) => {
     setSelectedIndex(selectedIndex === index ? null : index);
@@ -221,87 +209,105 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
           {activeTab === "Received" && (
             <div>
               <div>
-                <div className="flex items-center gap-1 text-sm text-gray-500">
-                  <span>Unlock for</span>
-                  <DaimoPayButton.Custom
-      appId="pay-demo" /* Example app ID you can use for prototyping */
-      toChain={8453}
-      toUnits="0.99"
-      toToken={getAddress(baseUSDC.token)}
-      toAddress="0xAbE4976624c9A6c6Ce0D382447E49B7feb639565"
-      onPaymentStarted={(e) => console.log(e)}
-      onPaymentCompleted={(e) => console.log(e)}
-      paymentOptions={["Coinbase"]}
-      preferredChains={[8453]}
-      >
-      {({ show }) => <button onClick={show} style={{ backgroundColor: "#FFC024", color: "#000000", borderRadius: "5px", padding: "5px 10px" }}>0.99$</button>}
-    </DaimoPayButton.Custom>
-    <span>to read all compliments!</span>
+                <div className="flex flex-col gap-4 mb-4">
+                  <div className="flex items-center gap-1 text-sm text-gray-500">
+                    {complimentsSentLast24h >= 2 ? (
+                      <span>You can view all compliments! 🎉</span>
+                    ) : (
+                      <span>Send {2 - complimentsSentLast24h} more {complimentsSentLast24h === 1 ? 'compliment' : 'compliments'} to unlock all messages!</span>
+                    )}
+                  </div>
+                  {complimentsSentLast24h < 2 && (
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <span>Or unlock all with</span>
+                      <DaimoPayButton.Custom
+                        appId="pay-demo"
+                        toChain={8453}
+                        toUnits="0.99"
+                        toToken={getAddress(baseUSDC.token)}
+                        toAddress="0xAbE4976624c9A6c6Ce0D382447E49B7feb639565"
+                        onPaymentStarted={(e) => console.log(e)}
+                        onPaymentCompleted={(e) => console.log(e)}
+                        paymentOptions={["Coinbase"]}
+                        preferredChains={[8453]}
+                      >
+                        {({ show }) => <button onClick={show} style={{ backgroundColor: "#FFC024", color: "#000000", borderRadius: "5px", padding: "5px 10px" }}>0.99$</button>}
+                      </DaimoPayButton.Custom>
+                    </div>
+                  )}
                 </div>
               </div>
-              <br></br>
               <ul className="space-y-2">
                 {loading ? (
                   <li>Loading...</li>
                 ) : receivedCompliments.length > 0 ? (
-                  receivedCompliments.map((compliment, index) => (
-                    <li 
-                      key={index}
-                          className={`p-2 border-2 border-[#000000] rounded cursor-pointer transition-all duration-200  ${
+                  receivedCompliments.map((compliment, index) => {
+                    // Check if this compliment should be viewable
+                    const viewableCount = getViewableComplimentsCount(complimentsSentLast24h);
+                    const isLocked = !compliment.isRead && index >= viewableCount;
+
+                    return (
+                      <li 
+                        key={index}
+                        className={`p-2 border-2 border-[#000000] rounded cursor-pointer transition-all duration-200  ${
                           selectedIndex === index 
-                          ? "bg-[#FFF] dark:bg-[#F1f1f1]" 
-                          : !compliment.isRead
-                          ? "bg-[#FFF]"
-                          : "hover:bg-gray-100 dark:hover:bg-gray-700"
-                      } ${!compliment.isRead ? "border-l-4 border-l-blue-500" : ""}`}
-                      onClick={() => handleComplimentClick(compliment, index)}
-                    >
-
-                      <div className="flex justify-between items-center">
-
-                        <p className="font-medium">You received a secret compliment!</p>
-                        {!compliment.isRead && (
-                          <span className="text-xs font-bold text-white bg-red-500 px-2 py-1 rounded">NEW</span>
-                        )}
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500 mt-2">{compliment.timestamp?.toLocaleDateString()}</p>
+                            ? "bg-[#FFF] dark:bg-[#F1f1f1]" 
+                            : !compliment.isRead
+                            ? "bg-[#FFF]"
+                            : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                        } ${!compliment.isRead ? "border-l-2 border-yellow-500" : ""}`}
+                        onClick={() => !isLocked && handleComplimentClick(compliment, index)}
+                      >
+                        <div className="flex justify-between items-center">
+                          <p className="font-medium">You received a secret compliment!</p>
+                          {!compliment.isRead && (
+                            <span className={`text-xs font-bold text-white ${isLocked ? "bg-gray-500" : "bg-red-500"} px-2 py-1 rounded`}>
+                              {isLocked ? "LOCKED" : "NEW"}
+                            </span>
+                          )}
                         </div>
-                      {selectedIndex === index && (
-                        <>
-                          <p className="mt-1 text-gray-500 dark:text-gray-300 p-3 bg-white dark:bg-gray-800 rounded border border-blue-200 dark:border-gray-600">
-                            {compliment.compliment}
+                        <div>
+                          <p className="text-sm text-gray-500 mt-2">{compliment.timestamp?.toLocaleDateString()}</p>
+                        </div>
+                        {selectedIndex === index && !isLocked && (
+                          <>
+                            <p className="mt-1 text-gray-500 dark:text-gray-300 p-3 bg-white dark:bg-gray-800 rounded border border-blue-200 dark:border-gray-600">
+                              {compliment.compliment}
+                            </p>
+                            <div className="mt-3 flex items-center gap-1">
+                              <p className="text-gray-500">Rate it: </p>
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <button
+                                  key={star}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRatingClick(compliment, star, index);
+                                  }}
+                                  className={`text-2xl ${
+                                    compliment.rating && star <= compliment.rating
+                                      ? "text-yellow-400"
+                                      : "text-gray-300"
+                                  } hover:text-yellow-400 transition-colors`}
+                                >
+                                  ★
+                                </button>
+                              ))}
+                              {compliment.rating && (
+                                <span className="ml-2 text-sm text-gray-500">
+                                  ({compliment.rating}/5)
+                                </span>
+                              )}
+                            </div>
+                          </>
+                        )}
+                        {isLocked && (
+                          <p className="mt-2 text-sm text-gray-500">
+                            Send more compliments to unlock this message!
                           </p>
-                          <div className="mt-3 flex items-center gap-1">
-                            <p className="text-gray-500">Rate it: </p>
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              
-                              <button
-                                key={star}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleRatingClick(compliment, star, index);
-                                }}
-                                className={`text-2xl ${
-                                  compliment.rating && star <= compliment.rating
-                                    ? "text-yellow-400"
-                                    : "text-gray-300"
-                                } hover:text-yellow-400 transition-colors`}
-                              >
-                                ★
-                              </button>
-                            ))}
-                            {compliment.rating && (
-                              <span className="ml-2 text-sm text-gray-500">
-                                ({compliment.rating}/5)
-                              </span>
-                            )}
-                          </div>
-                        </>
-                      )}
-
-                    </li>
-                  ))
+                        )}
+                      </li>
+                    );
+                  })
                 ) : (
                   <li>No compliments received yet</li>
                 )}
