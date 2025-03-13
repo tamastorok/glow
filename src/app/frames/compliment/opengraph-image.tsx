@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
 
-export const alt = "GLOW - Send anonymous compliments";
+export const alt = "GLOW - Send anonymous compliments -frame";
 export const size = {
   width: 600,
   height: 400,
