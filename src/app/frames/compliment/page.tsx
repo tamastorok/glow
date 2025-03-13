@@ -1,11 +1,11 @@
 import { Metadata } from "next";
 import Demo from "~/components/Demo";
 
-const appUrl = process.env.NEXT_PUBLIC_URL;
+const appUrl = process.env.NEXT_PUBLIC_URL || "https://glow-sand.vercel.app/";
 
 
 const frameEmbed = {
-  version: "vNext",
+  version: "next",
   imageUrl: `${appUrl}/frames/compliment/opengraph-image`,
   button: {
     title: "Start",
