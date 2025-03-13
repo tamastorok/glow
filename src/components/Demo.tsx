@@ -1,24 +1,13 @@
 "use client";
 
 import { useEffect, useCallback, useState } from "react";
-import { signIn, signOut, getCsrfToken } from "next-auth/react";
 import sdk, {
-  SignIn as SignInCore,
   type Context,
 } from "@farcaster/frame-sdk";
-import {
-  useAccount,
-  useDisconnect,
-  useConnect,
-  useChainId,
-} from "wagmi";
 
-import { config } from "~/components/providers/WagmiProvider";
 import { Button } from "~/components/ui/Button";
 import { ButtonSecondary } from "~/components/ui/ButtonSecondary";
 import { ButtonThird } from "~/components/ui/ButtonThird";
-import { truncateAddress } from "~/lib/truncateAddress";
-import { useSession } from "next-auth/react"
 import { createStore } from 'mipd'
 import { db } from "~/app/firebase";
 import SendComplimentModal from "~/pages/sendComplimentModal";
@@ -30,6 +19,8 @@ import Image from "next/image";
 // https://firebase.google.com/docs/web/setup#available-libraries
 import { doc, getDoc, setDoc, collection, query, where, getDocs, limit } from "firebase/firestore";
 
+import { useProfile } from '@farcaster/auth-kit';
+import { SignInButton } from '@farcaster/auth-kit';
 
 // Function to store user data
 async function storeUserData(userId: string, warpcastName: string) {
@@ -47,6 +38,33 @@ async function storeUserData(userId: string, warpcastName: string) {
   }
 }
 
+// Add this new component at the top level
+function SignInModal() {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-gray-800 w-[300px] rounded-lg p-6">
+        <header className="flex items-center justify-center gap-2 mb-6">
+          <Image 
+            src="/icon.png" 
+            alt="Glow Logo" 
+            className="h-6 w-6"
+            width={24}
+            height={24}
+          />
+          <span className="text-xl">GLOW</span>
+          <sup className="text-xs text-gray-500">Beta</sup>
+        </header>
+        <h2 className="text-xl font-bold text-center mb-4">Welcome to GLOW</h2>
+        <p className="text-center text-gray-600 dark:text-gray-300 mb-6">
+          Sign in with Farcaster to send and receive compliments
+        </p>
+        <div className="flex justify-center">
+          <SignInButton />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Demo(
   { title }: { title?: string } = { title: "GLOW - Send anonymous compliments" }
@@ -68,12 +86,18 @@ export default function Demo(
   //   setNotificationDetails(context?.client.notificationDetails ?? null);
   // }, [context]);
 
-  const { address, isConnected } = useAccount();
-  const chainId = useChainId();
 
-  const { disconnect } = useDisconnect();
-  const { connect } = useConnect();
+  const { profile, isAuthenticated } = useProfile();
 
+  // Get the username from either context or profile
+  const username = context?.user?.username || profile?.username;
+
+  // Update warpcastName when profile changes
+  useEffect(() => {
+    if (profile?.username) {
+      setWarpcastName(profile.username);
+    }
+  }, [profile]);
 
   useEffect(() => {
     const load = async () => {
@@ -140,12 +164,12 @@ export default function Demo(
 
   useEffect(() => {
     const checkUnreadCompliments = async () => {
-      if (context?.user?.username) {
+      if (username) {
         try {
           const complimentsRef = collection(db, "compliments");
           const q = query(
             complimentsRef, 
-            where("receiver", "==", context.user.username),
+            where("receiver", "==", username),
             where("isRead", "==", false),
             limit(1)
           );
@@ -159,7 +183,7 @@ export default function Demo(
     };
 
     checkUnreadCompliments();
-  }, [context]); // Add context as a dependency
+  }, [username]); // Changed dependency from context to username
 
   const close = useCallback(() => {
     sdk.actions.close();
@@ -170,6 +194,10 @@ export default function Demo(
     setIsContextOpen((prev) => !prev);
   }, []);
 
+  // If we're not in Warpcast and not authenticated, show the sign-in modal
+  if (!context?.user?.username && !isAuthenticated) {
+    return <SignInModal />;
+  }
 
   if (!isSDKLoaded) {
     return <div>Loading...</div>;
@@ -253,43 +281,6 @@ export default function Demo(
           )}
         </div>
 
-        <div>
-          <h2 className="font-2xl font-bold">Actions</h2>
-
-          <div className="mb-4">
-            <SignIn />
-          </div>
-        </div>
-
-        <div>
-          <h2 className="font-2xl font-bold">Wallet</h2>
-
-          {address && (
-            <div className="my-2 text-xs">
-              Address: <pre className="inline">{truncateAddress(address)}</pre>
-            </div>
-          )}
-
-          {chainId && (
-            <div className="my-2 text-xs">
-              Chain ID: <pre className="inline">{chainId}</pre>
-            </div>
-          )}
-
-
-          <div className="mb-4">
-            <Button
-              onClick={() =>
-                isConnected
-                  ? disconnect()
-                  : connect({ connector: config.connectors[0] })
-              }
-            >
-              {isConnected ? "Disconnect" : "Connect"}
-            </Button>
-          </div>
-        </div>
-
         {/* Footer */}
         <footer className="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
           <div className="text-center text-sm text-gray-500 dark:text-gray-400">
@@ -310,120 +301,6 @@ export default function Demo(
         />
       </div>
     </div>
-  );
-}
-
-function SignIn() {
-  const [signingIn, setSigningIn] = useState(false);
-  const [signingOut, setSigningOut] = useState(false);
-  const [signInResult, setSignInResult] = useState<SignInCore.SignInResult>();
-  const [signInFailure, setSignInFailure] = useState<string>();
-  const { data: session, status } = useSession()
-
-  const getNonce = useCallback(async () => {
-    try {
-      const nonce = await getCsrfToken();
-      if (!nonce) throw new Error("Unable to generate nonce");
-      return nonce;
-    } catch (error) {
-      console.error("Error getting nonce:", error);
-      setSignInFailure("Failed to initialize sign-in. Please try again.");
-      return null;
-    }
-  }, []);
-
-  const handleSignIn = useCallback(async () => {
-    try {
-      setSigningIn(true);
-      setSignInFailure(undefined);
-      
-      const nonce = await getNonce();
-      if (!nonce) {
-        setSigningIn(false);
-        return;
-      }
-
-      console.log("Starting Farcaster sign-in with nonce:", nonce);
-      const result = await sdk.actions.signIn({ nonce });
-      console.log("Farcaster sign-in result:", result);
-      setSignInResult(result);
-
-      console.log("Starting NextAuth sign-in with credentials");
-      const signInResponse = await signIn("credentials", {
-        message: result.message,
-        signature: result.signature,
-        redirect: false,
-      });
-      console.log("NextAuth sign-in response:", signInResponse);
-
-      if (signInResponse?.error) {
-        console.error("NextAuth sign-in error:", signInResponse.error);
-        setSignInFailure(`Authentication failed: ${signInResponse.error}`);
-      }
-
-    } catch (e) {
-      if (e instanceof SignInCore.RejectedByUser) {
-        console.log("User rejected the sign-in request");
-        setSignInFailure("Sign-in was cancelled by user");
-        return;
-      };
-      
-      setSignInFailure("An unexpected error occurred. Please try again.");
-    } finally {
-      setSigningIn(false);
-    }
-  }, [getNonce]);
-
-  const handleSignOut = useCallback(async () => {
-    try {
-      setSigningOut(true);
-      await signOut({ redirect: false }) 
-      setSignInResult(undefined);
-    } catch (error) {
-      console.error("Sign-out error:", error);
-      setSignInFailure("Failed to sign out. Please try again.");
-    } finally {
-      setSigningOut(false);
-    }
-  }, []);
-
-  return (
-    <>
-      {status !== "authenticated" &&
-        <Button
-          onClick={handleSignIn}
-          disabled={signingIn}
-        >
-          Sign In with Farcaster
-        </Button>
-      }
-      {status === "authenticated" &&
-        <Button
-          onClick={handleSignOut}
-          disabled={signingOut}
-        >
-          Sign out
-        </Button>
-      }
-      {session &&
-        <div className="my-2 p-2 text-xs overflow-x-scroll bg-gray-100 rounded-lg font-mono">
-          <div className="font-semibold text-gray-500 mb-1">Session</div>
-          <div className="whitespace-pre">{JSON.stringify(session, null, 2)}</div>
-        </div>
-      }
-      {signInFailure && !signingIn && (
-        <div className="my-2 p-2 text-xs overflow-x-scroll bg-gray-100 rounded-lg font-mono">
-          <div className="font-semibold text-gray-500 mb-1">SIWF Result</div>
-          <div className="whitespace-pre">{signInFailure}</div>
-        </div>
-      )}
-      {signInResult && !signingIn && (
-        <div className="my-2 p-2 text-xs overflow-x-scroll bg-gray-100 rounded-lg font-mono">
-          <div className="font-semibold text-gray-500 mb-1">SIWF Result</div>
-          <div className="whitespace-pre">{JSON.stringify(signInResult, null, 2)}</div>
-        </div>
-      )}
-    </>
   );
 }
 

@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import { ButtonThird } from "~/components/ui/ButtonThird";
-import { type Context,  } from "@farcaster/frame-sdk";
+import { type Context } from "@farcaster/frame-sdk";
 import { db } from "~/app/firebase";
 import { collection, query, where, getDocs, doc, updateDoc, getDoc } from "firebase/firestore";
 import Image from "next/image";
+import { useProfile } from '@farcaster/auth-kit';
 
 import { baseUSDC } from '@daimo/contract'
 import { DaimoPayButton } from '@daimo/pay'
@@ -24,7 +25,7 @@ interface Compliment {
   timestamp: Date;
   isRead: boolean;
   complimentID: string;
-  rating?: number; // Optional rating field
+  rating?: number;
 }
 
 export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewComplimentsModalProps) {
@@ -33,6 +34,10 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
   const [receivedCompliments, setReceivedCompliments] = useState<Compliment[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const { profile } = useProfile();
+
+  // Get the username from either context or profile
+  const username = context?.user?.username || profile?.username;
 
   // Calculate compliments sent in last 24h from sentCompliments
   const complimentsSentLast24h = sentCompliments.filter(compliment => {
@@ -49,13 +54,13 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
   // Fetch both sent and received compliments when modal opens
   useEffect(() => {
     const fetchData = async () => {
-      if (isOpen && context?.user?.username) {
+      if (isOpen && username) {
         setLoading(true);
         try {
           // Fetch sent compliments
           const sentQuery = query(
             collection(db, "compliments"),
-            where("sender", "==", context.user.username)
+            where("sender", "==", username)
           );
           
           const sentSnapshot = await getDocs(sentQuery);
@@ -74,7 +79,7 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
           // Fetch received compliments
           const receivedQuery = query(
             collection(db, "compliments"),
-            where("receiver", "==", context.user.username)
+            where("receiver", "==", username)
           );
           
           const receivedSnapshot = await getDocs(receivedQuery);
@@ -98,7 +103,7 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
     };
 
     fetchData();
-  }, [isOpen, context?.user?.username]);
+  }, [isOpen, username]);
 
   // Reset selection when changing tabs
   useEffect(() => {

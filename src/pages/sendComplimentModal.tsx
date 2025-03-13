@@ -9,6 +9,7 @@ import { type Context } from "@farcaster/frame-sdk";
 import Image from "next/image";
 import { createCast } from "~/lib/neynar";
 import { containsProfanity } from "~/utils/profanityFilter";
+import { useProfile } from '@farcaster/auth-kit';
 
 import { baseUSDC } from '@daimo/contract'
 import { DaimoPayButton } from '@daimo/pay'
@@ -29,6 +30,7 @@ interface SendComplimentModalProps {
 }
 
 export default function SendComplimentModal({ isOpen, onClose, context }: SendComplimentModalProps) {
+  const { profile } = useProfile();
   const [recipient, setRecipient] = useState("");
   const [compliment, setCompliment] = useState("");
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error' | 'loading', text: string } | null>(null);
@@ -37,12 +39,16 @@ export default function SendComplimentModal({ isOpen, onClose, context }: SendCo
   const [isLoading, setIsLoading] = useState(false);
   const [dailyCount, setDailyCount] = useState(0);
 
+  // Get the username and fid from either context or profile
+  const username = context?.user?.username || profile?.username;
+  const fid = context?.user?.fid || profile?.fid;
+
   // Check daily limit on modal open
   useEffect(() => {
     const fetchDailyCount = async () => {
-      if (isOpen && context?.user?.fid) {
+      if (isOpen && fid) {
         try {
-          await checkDailyLimit(context.user.fid.toString());
+          await checkDailyLimit(fid.toString());
         } catch (error) {
           console.error('Error fetching daily count:', error);
         }
@@ -50,7 +56,7 @@ export default function SendComplimentModal({ isOpen, onClose, context }: SendCo
     };
     
     fetchDailyCount();
-  }, [isOpen, context?.user?.fid]);
+  }, [isOpen, fid]);
 
   // Debounced search function
   const searchUsers = useCallback(async (query: string) => {
@@ -138,7 +144,7 @@ export default function SendComplimentModal({ isOpen, onClose, context }: SendCo
 
   const handleSendCompliment = async () => {
     try {
-      if (!context?.user?.fid) {
+      if (!fid) {
         console.error("No user context:", context);
         setStatusMessage({ type: 'error', text: 'User not authenticated' });
         throw new Error('User not authenticated');
@@ -167,17 +173,19 @@ export default function SendComplimentModal({ isOpen, onClose, context }: SendCo
       setStatusMessage({ type: 'loading', text: 'Sending...' });
 
       // Check daily limit
-      await checkDailyLimit(context.user.fid.toString());
+      await checkDailyLimit(fid.toString());
 
       const complimentID = generateComplimentID();
-      const senderFID = context.user.fid.toString();
-      const senderUsername = context.user.username;
+      const senderFID = fid.toString();
+      const senderUsername = username;
+      const receiverFID = searchResults.find(user => user.username === recipient)?.fid.toString();
       
       const complimentRef = doc(db, 'compliments', complimentID);
       await setDoc(complimentRef, {
         compliment: compliment,
         complimentID: complimentID,
         receiver: recipient,
+        receiverFID: receiverFID,
         sender: senderUsername,
         senderFID: senderFID,
         timestamp: Timestamp.now(),

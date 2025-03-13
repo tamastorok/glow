@@ -5,6 +5,7 @@ import { SessionProvider } from "next-auth/react"
 import { DaimoPayProvider, getDefaultConfig } from '@daimo/pay'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createConfig, WagmiProvider as BaseWagmiProvider } from 'wagmi'
+import { AuthKitProvider } from "~/components/providers/AuthKitProvider";
 
 const wagmiConfig = createConfig(
   getDefaultConfig({
@@ -18,11 +19,13 @@ const queryClient = new QueryClient()
 export function Providers({ session, children }: { session: Session | null, children: React.ReactNode }) {
   return (
     <SessionProvider session={session}>
-      <BaseWagmiProvider config={wagmiConfig}>
-        <QueryClientProvider client={queryClient}>
-          <DaimoPayProvider>{children}</DaimoPayProvider>
-        </QueryClientProvider>
-      </BaseWagmiProvider>
+      <AuthKitProvider>
+        <BaseWagmiProvider config={wagmiConfig}>
+          <QueryClientProvider client={queryClient}>
+            <DaimoPayProvider>{children}</DaimoPayProvider>
+          </QueryClientProvider>
+        </BaseWagmiProvider>
+      </AuthKitProvider>
     </SessionProvider>
   );
 }
