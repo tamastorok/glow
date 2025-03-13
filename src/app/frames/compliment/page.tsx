@@ -3,6 +3,7 @@ import Demo from "~/components/Demo";
 
 const appUrl = process.env.NEXT_PUBLIC_URL;
 
+
 export const metadata: Metadata = {
   title: "GLOW - Send anonymous compliments",
   description: "Send anonymous compliments to anyone on Warpcast",
@@ -20,5 +21,5 @@ export const metadata: Metadata = {
 };
 
 export default function ComplimentFrame() {
-  return <Demo title="GLOW - Send anonymous compliments" />;
+  return <Demo />;
 } 

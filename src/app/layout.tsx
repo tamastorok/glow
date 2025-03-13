@@ -5,7 +5,7 @@ import "~/app/globals.css";
 import { Providers } from "~/app/providers";
 
 export const metadata: Metadata = {
-  title: "GLOW - Send an anonymous compliment",
+  title: "GLOW - Send anonymous compliments",
   description: "Send anonymous compliments to anyone on Warpcast.",
 };
 

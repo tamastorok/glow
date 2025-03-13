@@ -49,7 +49,7 @@ async function storeUserData(userId: string, warpcastName: string) {
 
 
 export default function Demo(
-  { title }: { title?: string } = { title: "Frames v2 Demo" }
+  { title }: { title?: string } = { title: "GLOW - Send anonymous compliments" }
 ) {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [context, setContext] = useState<Context.FrameContext | null>(null);
