@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ButtonThird } from "~/components/ui/ButtonThird";
+import { ButtonSecondary } from "~/components/ui/ButtonSecondary";
 import { type Context } from "@farcaster/frame-sdk";
 import { db } from "~/app/firebase";
 import { collection, query, where, getDocs, doc, updateDoc, getDoc } from "firebase/firestore";
@@ -191,11 +191,11 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
           </div>
         </div>
       </header>
-        <div className="flex justify-between items-center mb-4">
+        <div className="mx-auto flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">My Compliments</h2>
         </div>
 
-        <div className="flex w-full mb-4">
+        <div className="w-[350px] mx-auto flex mb-4">
           <button
             className={`flex-1 px-4 py-2 rounded-l ${activeTab === "Received" ? "bg-[#FFC024] text-black border-2 border-[#000000] border-r-0"  : "bg-[#FFFFF] text-black border-2 border-[#000000]"}`}
             onClick={() => setActiveTab("Received")}
@@ -210,7 +210,7 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="w-[350px] mx-auto flex-1 overflow-y-auto">
           {activeTab === "Received" && (
             <div>
               <div>
@@ -355,8 +355,8 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
           )}
         </div>
 
-        <div className="mt-4 flex justify-end">
-          <ButtonThird onClick={onClose}>Close</ButtonThird>
+        <div className="w-[350px] mx-auto mt-4 flex justify-end">
+          <ButtonSecondary onClick={onClose}>Close</ButtonSecondary>
         </div>
       </div>
     </div>

@@ -232,15 +232,15 @@ export default function SendComplimentModal({ isOpen, onClose, context }: SendCo
           </div>
         </header>
         
-        <div className="flex justify-between items-center mb-4">
+        <div className="w-[300px] mx-auto flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Send compliment</h2>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="w-[300px] mx-auto flex items-center gap-2">
           <p className="text-sm text-gray-500">
               {dailyCount}/10 compliments sent today.
           </p>
           {dailyCount >= 10 && (
-            <div className="flex items-center gap-2 text-sm text-gray-500">
+            <div className="w-[300px] mx-auto flex items-center gap-2 text-sm text-gray-500">
               <p>Unlock for:</p>
               <DaimoPayButton.Custom
       appId="pay-demo" /* Example app ID you can use for prototyping */
@@ -259,7 +259,7 @@ export default function SendComplimentModal({ isOpen, onClose, context }: SendCo
           )}
         </div>
         
-        <div className="flex-1 overflow-y-auto">
+        <div className="w-[300px] mx-auto flex-1 overflow-y-auto">
           <div className="mb-4 relative">
             <label className="block text-m font-large mb-1 font-bold mt-4">Recipient</label>
             <p className="text-sm text-gray-500 mb-1">Find someone on Warpcast.</p>
@@ -330,7 +330,7 @@ export default function SendComplimentModal({ isOpen, onClose, context }: SendCo
               {statusMessage.text}
             </div>
           )}
-        <div className="mt-4">
+        <div className="w-[300px] mx-auto mt-4">
           <div className="flex justify-end gap-2 mb-2 w-full">
             <ButtonSecondary onClick={onClose} className="flex-1">Cancel</ButtonSecondary>
             <Button 

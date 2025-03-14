@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useState } from "react";
 import sdk, {
   type Context,
 } from "@farcaster/frame-sdk";
 
 import { Button } from "~/components/ui/Button";
 import { ButtonSecondary } from "~/components/ui/ButtonSecondary";
-import { ButtonThird } from "~/components/ui/ButtonThird";
 import { createStore } from 'mipd'
 import { db } from "~/app/firebase";
 import SendComplimentModal from "~/pages/sendComplimentModal";
@@ -42,7 +41,7 @@ async function storeUserData(userId: string, warpcastName: string) {
 function SignInModal() {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 w-[300px] rounded-lg p-6">
+      <div className="bg-white dark:bg-gray-800 w-[350px] rounded-lg p-6">
         <header className="flex items-center justify-center gap-2 mb-6">
           <Image 
             src="/icon.png" 
@@ -71,7 +70,6 @@ export default function Demo(
 ) {
   const [isSDKLoaded, setIsSDKLoaded] = useState(false);
   const [context, setContext] = useState<Context.FrameContext | null>(null);
-  const [isContextOpen, setIsContextOpen] = useState(false);
 
   //const [added, setAdded] = useState(false);
  // const [notificationDetails, setNotificationDetails] =
@@ -88,9 +86,6 @@ export default function Demo(
 
 
   const { profile, isAuthenticated } = useProfile();
-
-  // Get the username from either context or profile
-  const username = context?.user?.username || profile?.username;
 
   // Update warpcastName when profile changes
   useEffect(() => {
@@ -164,17 +159,20 @@ export default function Demo(
 
   useEffect(() => {
     const checkUnreadCompliments = async () => {
-      if (username) {
+      // Get username from either context or profile (when using Farcaster auth)
+      const currentUsername = profile?.username || context?.user?.username;
+      
+      if (currentUsername) {
         try {
           const complimentsRef = collection(db, "compliments");
           const q = query(
             complimentsRef, 
-            where("receiver", "==", username),
+            where("receiver", "==", currentUsername),
             where("isRead", "==", false),
             limit(1)
           );
           const querySnapshot = await getDocs(q);
-          console.log("Unread check:", !querySnapshot.empty); // Debug log
+          console.log("Unread check for", currentUsername, ":", !querySnapshot.empty); // Debug log
           setHasUnreadCompliments(!querySnapshot.empty);
         } catch (error) {
           console.error("Error checking unread compliments:", error);
@@ -183,16 +181,7 @@ export default function Demo(
     };
 
     checkUnreadCompliments();
-  }, [username]); // Changed dependency from context to username
-
-  const close = useCallback(() => {
-    sdk.actions.close();
-  }, []);
-
-
-  const toggleContext = useCallback(() => {
-    setIsContextOpen((prev) => !prev);
-  }, []);
+  }, [profile?.username, context?.user?.username]); // Update dependencies to include both username sources
 
   // If we're not in Warpcast and not authenticated, show the sign-in modal
   if (!context?.user?.username && !isAuthenticated) {
@@ -210,7 +199,7 @@ export default function Demo(
       paddingLeft: context?.client.safeAreaInsets?.left ?? 0,
       paddingRight: context?.client.safeAreaInsets?.right ?? 0 ,
     }}>
-      <header className="flex items-center justify-center gap-2 py-4 pt-11">
+      <header className="w-[350px] mx-auto flex items-center justify-center gap-2 py-4 pt-11">
         <Image 
           src="/icon.png" 
           alt="Glow Logo" 
@@ -221,7 +210,7 @@ export default function Demo(
         <span className="text-xl">GLOW</span>
         <sup className="text-xs text-gray-500">Beta</sup>
       </header>
-        <div className="w-[300px] mx-auto py-2 px-2">
+        <div className="w-[350px] mx-auto py-2 px-2">
           
 
         <h2 className="text-xl font-bold text-center full-width">Send <span className="underline">anonym</span> compliments</h2>
@@ -230,12 +219,17 @@ export default function Demo(
           <h2 className="font-medium font-bold mb-10 text-center">Hello, <span style={{fontWeight: "bold"}}>{warpcastName}</span>.</h2>
         )}
 
-        <div className="flex justify-center mb-4">
-          {!context?.user?.username && (
-          
-            <SignInButton />
-          )}
-        </div>
+        {!context?.user?.username && (
+          <div className="flex justify-center mb-4">
+            {!isAuthenticated ? (
+              <SignInButton />
+            ) : (
+              <div className="px-4 py-2 bg-white text-black rounded-md">
+                <h2 className="font-medium font-bold mb-10 text-center">Hello, <span style={{fontWeight: "bold"}}>{profile?.username}</span></h2>
+              </div>
+            )}
+          </div>
+        )}
         <h1 className="text-2xl font-bold text-center mb-4">{title}</h1>
 
         <div className="mb-4">
@@ -260,33 +254,9 @@ export default function Demo(
           <div className="mb-4">
           <br />
 
-            <ButtonThird onClick={close} className="font-bold">Close Frame</ButtonThird>
           </div>
 
 
-
-          <h2 className="font-2xl font-bold">Context</h2>
-          <button
-            onClick={toggleContext}
-            className="flex items-center gap-2 transition-colors"
-          >
-            <span
-              className={`transform transition-transform ${
-                isContextOpen ? "rotate-90" : ""
-              }`}
-            >
-              ➤
-            </span>
-            Tap to expand
-          </button>
-
-          {isContextOpen && (
-            <div className="p-4 mt-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
-              <pre className="font-mono text-xs whitespace-pre-wrap break-words max-w-[260px] overflow-x-">
-                {JSON.stringify(context, null, 2)}
-              </pre>
-            </div>
-          )}
         </div>
 
         {/* Footer */}
