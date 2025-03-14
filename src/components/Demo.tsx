@@ -56,7 +56,7 @@ function SignInModal() {
         </header>
         <h2 className="text-xl font-bold text-center mb-4">Welcome to GLOW</h2>
         <p className="text-center text-gray-600 dark:text-gray-300 mb-6">
-          Sign in with Farcaster to send and receive compliments
+          Sign in with Farcaster to send and see your compliments
         </p>
         <div className="flex justify-center">
           <SignInButton />
@@ -226,8 +226,16 @@ export default function Demo(
 
         <h2 className="text-xl font-bold text-center full-width">Send <span className="underline">anonym</span> compliments</h2>
         <div className="mb-4 text-center">...to anyone on Warpcast.</div>
-        <h2 className="font-medium font-bold mb-10 text-center">Hello, <span style={{fontWeight: "bold"}}>{warpcastName}</span>.</h2>
+        {context?.user?.username && (
+          <h2 className="font-medium font-bold mb-10 text-center">Hello, <span style={{fontWeight: "bold"}}>{warpcastName}</span>.</h2>
+        )}
 
+        <div className="flex justify-center mb-4">
+          {!context?.user?.username && (
+          
+            <SignInButton />
+          )}
+        </div>
         <h1 className="text-2xl font-bold text-center mb-4">{title}</h1>
 
         <div className="mb-4">

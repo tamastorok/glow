@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import Demo from "~/components/Demo";
 
-const appUrl = process.env.NEXT_PUBLIC_URL || "https://glow-sand.vercel.app";
+const appUrl = process.env.NEXT_PUBLIC_URL || "https://www.useglow.xyz";
 
 
 const frameEmbed = {
