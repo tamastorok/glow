@@ -228,7 +228,7 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
                       <DaimoPayButton.Custom
                         appId="pay-demo"
                         toChain={8453}
-                        toUnits="0.99"
+                        toUnits="0.19"
                         toToken={getAddress(baseUSDC.token)}
                         toAddress="0xAbE4976624c9A6c6Ce0D382447E49B7feb639565"
                         onPaymentStarted={(e) => console.log(e)}
@@ -236,7 +236,7 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
                         paymentOptions={["Coinbase"]}
                         preferredChains={[8453]}
                       >
-                        {({ show }) => <button onClick={show} style={{ backgroundColor: "#FFC024", color: "#000000", borderRadius: "5px", padding: "5px 10px" }}>0.99$</button>}
+                        {({ show }) => <button onClick={show} style={{ backgroundColor: "#FFC024", color: "#000000", borderRadius: "5px", padding: "5px 10px" }}>0.19$</button>}
                       </DaimoPayButton.Custom>
                     </div>
                   )}

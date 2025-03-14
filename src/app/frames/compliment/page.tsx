@@ -20,10 +20,10 @@ const frameEmbed = {
 };
 
 export const metadata: Metadata = {
-  title: "GLOW - Send anonymous compliments -TEST",
+  title: "GLOW - Send anonymous compliments",
   description: "Send anonymous compliments to anyone on Warpcast",
   openGraph: {
-    title: "GLOW - Send anonymous compliments -TEST",
+    title: "GLOW - Send anonymous compliments",
     description: "Send anonymous compliments to anyone on Warpcast",
     images: [`${appUrl}/frames/compliment/opengraph-image`],
   },

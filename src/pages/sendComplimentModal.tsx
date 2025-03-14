@@ -11,10 +11,6 @@ import { createCast } from "~/lib/neynar";
 import { containsProfanity } from "~/utils/profanityFilter";
 import { useProfile } from '@farcaster/auth-kit';
 
-import { baseUSDC } from '@daimo/contract'
-import { DaimoPayButton } from '@daimo/pay'
-import { getAddress } from 'viem'
-
 
 interface User {
   fid: number;
@@ -237,26 +233,8 @@ export default function SendComplimentModal({ isOpen, onClose, context }: SendCo
         </div>
         <div className="w-[300px] mx-auto flex items-center gap-2">
           <p className="text-sm text-gray-500">
-              {dailyCount}/10 compliments sent today.
+              {dailyCount}/5 compliments sent today.
           </p>
-          {dailyCount >= 10 && (
-            <div className="w-[300px] mx-auto flex items-center gap-2 text-sm text-gray-500">
-              <p>Unlock for:</p>
-              <DaimoPayButton.Custom
-      appId="pay-demo" /* Example app ID you can use for prototyping */
-      toChain={8453}
-      toUnits="0.99"
-      toToken={getAddress(baseUSDC.token)}
-      toAddress="0xAbE4976624c9A6c6Ce0D382447E49B7feb639565"
-      onPaymentStarted={(e) => console.log(e)}
-      onPaymentCompleted={(e) => console.log(e)}
-      paymentOptions={["Coinbase"]}
-      preferredChains={[8453]}
-      >
-      {({ show }) => <button onClick={show} style={{ backgroundColor: "#FFC024", color: "#000000", borderRadius: "5px", padding: "5px 10px" }}>0.99$</button>}
-    </DaimoPayButton.Custom>
-            </div>
-          )}
         </div>
         
         <div className="w-[300px] mx-auto flex-1 overflow-y-auto">
@@ -310,7 +288,7 @@ export default function SendComplimentModal({ isOpen, onClose, context }: SendCo
           
           <div className="mb-4">
             <label className="block text-m font-large mb-1 font-bold">Compliment</label>
-            <p className="text-sm text-gray-500 mb-1">Brighten someone&apos;s day. Be nice.</p>
+            <p className="text-sm text-gray-500 mb-1">Brighten someone&apos;s day.</p>
             <textarea
               placeholder="Be nice. We mean it! Max 150 characters."
               value={compliment}
@@ -336,9 +314,9 @@ export default function SendComplimentModal({ isOpen, onClose, context }: SendCo
             <Button 
               onClick={handleSendCompliment} 
               className="flex-1"
-              disabled={dailyCount >= 10}
+              disabled={dailyCount >= 5}
             >
-              {dailyCount >= 10 ? 'Limit Reached' : 'Send'}
+              {dailyCount >= 5 ? 'Limit Reached' : 'Send'}
             </Button>
           </div>
         </div>
