@@ -29,4 +29,3 @@ export function Providers({ session, children }: { session: Session | null, chil
     </SessionProvider>
   );
 }
-

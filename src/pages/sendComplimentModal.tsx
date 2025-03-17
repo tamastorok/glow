@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "~/components/ui/Button";
 import { ButtonSecondary } from "~/components/ui/ButtonSecondary";
 import { doc, setDoc, collection, query, where, getDocs, Timestamp } from "firebase/firestore";
-import { db } from "~/app/firebase";
+import { db, auth, signInWithFarcaster } from "~/app/firebase";
 import { type Context } from "@farcaster/frame-sdk";
 import Image from "next/image";
 import { createCast } from "~/lib/neynar";
@@ -42,8 +42,15 @@ export default function SendComplimentModal({ isOpen, onClose, context }: SendCo
   // Check daily limit on modal open
   useEffect(() => {
     const fetchDailyCount = async () => {
-      if (isOpen && fid) {
+      if (isOpen && fid && username) {
         try {
+          // Ensure Firebase authentication first
+          if (!auth.currentUser) {
+            console.log('No Firebase user, attempting to sign in...');
+            await signInWithFarcaster(fid.toString(), username);
+            console.log('Firebase sign in successful');
+          }
+
           await checkDailyLimit(fid.toString());
         } catch (error) {
           console.error('Error fetching daily count:', error);
@@ -52,7 +59,7 @@ export default function SendComplimentModal({ isOpen, onClose, context }: SendCo
     };
     
     fetchDailyCount();
-  }, [isOpen, fid]);
+  }, [isOpen, fid, username]);
 
   // Debounced search function
   const searchUsers = useCallback(async (query: string) => {
@@ -116,6 +123,11 @@ export default function SendComplimentModal({ isOpen, onClose, context }: SendCo
   // Check user's daily compliment limit
   const checkDailyLimit = async (senderFID: string) => {
     try {
+      // Verify Firebase auth state
+      if (!auth.currentUser) {
+        throw new Error('User not authenticated with Firebase');
+      }
+
       const startOfDay = new Date();
       startOfDay.setHours(0, 0, 0, 0);
       const startOfDayTimestamp = Timestamp.fromDate(startOfDay);
@@ -129,6 +141,7 @@ export default function SendComplimentModal({ isOpen, onClose, context }: SendCo
 
       const dailySnap = await getDocs(dailyQuery);
       const count = dailySnap.size;
+      console.log('Daily compliments count:', { count, senderFID, auth: !!auth.currentUser });
       setDailyCount(count);
 
       return count;
@@ -140,6 +153,25 @@ export default function SendComplimentModal({ isOpen, onClose, context }: SendCo
 
   const handleSendCompliment = async () => {
     try {
+      // First ensure Firebase authentication
+      if (!auth.currentUser) {
+        console.log('No Firebase user, attempting to sign in...');
+        if (!fid || !username) {
+          console.error("Missing fid or username:", { fid, username });
+          setStatusMessage({ type: 'error', text: 'Authentication failed: Missing user info' });
+          return;
+        }
+        await signInWithFarcaster(fid.toString(), username);
+        console.log('Firebase sign in successful');
+      }
+
+      console.log('Current auth state:', {
+        isAuthenticated: !!auth.currentUser,
+        uid: auth.currentUser?.uid,
+        fid: fid,
+        username: username
+      });
+
       if (!fid) {
         console.error("No user context:", context);
         setStatusMessage({ type: 'error', text: 'User not authenticated' });
@@ -176,6 +208,14 @@ export default function SendComplimentModal({ isOpen, onClose, context }: SendCo
       const senderUsername = username;
       const receiverFID = searchResults.find(user => user.username === recipient)?.fid.toString();
       
+      console.log('Attempting to create compliment:', {
+        complimentID,
+        senderFID,
+        senderUsername,
+        receiver: recipient,
+        receiverFID
+      });
+
       const complimentRef = doc(db, 'compliments', complimentID);
       await setDoc(complimentRef, {
         compliment: compliment,

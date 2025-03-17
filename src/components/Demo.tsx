@@ -8,7 +8,7 @@ import sdk, {
 import { Button } from "~/components/ui/Button";
 import { ButtonSecondary } from "~/components/ui/ButtonSecondary";
 import { createStore } from 'mipd'
-import { db } from "~/app/firebase";
+import { db, signInWithFarcaster } from "~/app/firebase";
 import SendComplimentModal from "~/pages/sendComplimentModal";
 import ViewComplimentsModal from "~/pages/ViewComplimentsModal";
 import Image from "next/image";
@@ -142,28 +142,37 @@ export default function Demo(
         // Update userId state if contextData contains user information
         if (contextData?.user?.fid) {
           setWarpcastName(contextData.user.username ?? "Unknown Username");
+          
+          // Sign in with Firebase before storing user data
+          const userId = contextData.user.fid.toString();
+          const username = contextData.user.username ?? "unknown";
+          
+          try {
+            await signInWithFarcaster(userId, username);
+            await storeUserData(userId, username);
+          } catch (error) {
+            console.error("Error during Firebase authentication:", error);
+          }
         }
-
-        // Call storeUserData when the app is opened
-        const userId = contextData?.user?.fid?.toString() ?? "unknown";
-        const warpcastName = contextData?.user?.username ?? "unknown";
-        await storeUserData(userId, warpcastName);
-
       } catch (error) {
         console.error("Failed to initialize context:", error);
       }
     };
 
     initializeContext();
-  }, []); // Empty dependency array ensures this runs once on mount
+  }, []);
 
   useEffect(() => {
     const checkUnreadCompliments = async () => {
       // Get username from either context or profile (when using Farcaster auth)
       const currentUsername = profile?.username || context?.user?.username;
+      const currentFid = profile?.fid || context?.user?.fid;
       
-      if (currentUsername) {
+      if (currentUsername && currentFid) {
         try {
+          // Ensure Firebase authentication
+          await signInWithFarcaster(currentFid.toString(), currentUsername);
+          
           const complimentsRef = collection(db, "compliments");
           const q = query(
             complimentsRef, 
@@ -172,7 +181,7 @@ export default function Demo(
             limit(1)
           );
           const querySnapshot = await getDocs(q);
-          console.log("Unread check for", currentUsername, ":", !querySnapshot.empty); // Debug log
+          console.log("Unread check for", currentUsername, ":", !querySnapshot.empty);
           setHasUnreadCompliments(!querySnapshot.empty);
         } catch (error) {
           console.error("Error checking unread compliments:", error);
@@ -181,7 +190,7 @@ export default function Demo(
     };
 
     checkUnreadCompliments();
-  }, [profile?.username, context?.user?.username]); // Update dependencies to include both username sources
+  }, [profile?.username, context?.user?.username, profile?.fid, context?.user?.fid]);
 
   // If we're not in Warpcast and not authenticated, show the sign-in modal
   if (!context?.user?.username && !isAuthenticated) {
@@ -281,5 +290,6 @@ export default function Demo(
     </div>
   );
 }
+
 
 
