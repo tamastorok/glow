@@ -38,7 +38,7 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
   const [loading, setLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const { profile } = useProfile();
-  const [paymentTimestamp, setPaymentTimestamp] = useState<Date | null>(null);
+  //const [paymentTimestamp, setPaymentTimestamp] = useState<Date | null>(null);
 
   // Get the username from either context or profile
   const username = context?.user?.username || profile?.username;
@@ -55,9 +55,7 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
 
   // Function to get number of viewable compliments based on sent compliments and payment status
   const getViewableComplimentsCount = (sentCount: number) => {
-    const now = new Date();
-    const paymentValid = paymentTimestamp && (now.getTime() - paymentTimestamp.getTime()) < 24 * 60 * 60 * 1000;
-    return sentCount >= 2 || paymentValid ? Infinity : 0; // Can view all compliments if sent 2 or more, or if payment is valid
+    return sentCount >= 2 ? Infinity : 0; // Can view all compliments if sent 2 or more, or if payment is valid
   };
 
   // Fetch both sent and received compliments when modal opens
