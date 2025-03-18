@@ -8,21 +8,21 @@ if (!getApps().length) {
   try {
     // Log environment variables (without sensitive values)
     console.log('Environment check:', {
-      hasProjectId: !!process.env.FIREBASE_PROJECT_ID,
-      hasClientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
-      hasPrivateKey: !!process.env.FIREBASE_PRIVATE_KEY,
-      projectId: process.env.FIREBASE_PROJECT_ID, // safe to log
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL, // safe to log
-      privateKeyLength: process.env.FIREBASE_PRIVATE_KEY?.length,
-      privateKeyFirstChar: process.env.FIREBASE_PRIVATE_KEY?.[0],
-      privateKeyLastChar: process.env.FIREBASE_PRIVATE_KEY?.[process.env.FIREBASE_PRIVATE_KEY.length - 1]
+      //hasProjectId: !!process.env.FIREBASE_PROJECT_ID,
+      //hasClientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
+      //hasPrivateKey: !!process.env.FIREBASE_PRIVATE_KEY,
+      //projectId: process.env.FIREBASE_PROJECT_ID, // safe to log
+      //clientEmail: process.env.FIREBASE_CLIENT_EMAIL, // safe to log
+      //privateKeyLength: process.env.FIREBASE_PRIVATE_KEY?.length,
+      //privateKeyFirstChar: process.env.FIREBASE_PRIVATE_KEY?.[0],
+      //privateKeyLastChar: process.env.FIREBASE_PRIVATE_KEY?.[process.env.FIREBASE_PRIVATE_KEY.length - 1]
     });
 
     const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
     console.log('Private key format check:', {
-      hasNewlines: privateKey?.includes('\n'),
-      startsWith: privateKey?.startsWith('-----BEGIN PRIVATE KEY-----'),
-      endsWith: privateKey?.endsWith('-----END PRIVATE KEY-----')
+      //hasNewlines: privateKey?.includes('\n'),
+      //startsWith: privateKey?.startsWith('-----BEGIN PRIVATE KEY-----'),
+      //endsWith: privateKey?.endsWith('-----END PRIVATE KEY-----')
     });
 
     initializeApp({

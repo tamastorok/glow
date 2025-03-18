@@ -10,9 +10,10 @@ import { useProfile } from '@farcaster/auth-kit';
 import { FirebaseError } from 'firebase/app';
 import { auth, signInWithFarcaster } from "~/app/firebase";
 
-import { baseUSDC } from '@daimo/contract'
-import { DaimoPayButton } from '@daimo/pay'
-import { getAddress } from 'viem'
+
+//import { baseUSDC } from '@daimo/contract'
+//import { DaimoPayButton } from '@daimo/pay'
+//import { getAddress } from 'viem'
 
 interface ViewComplimentsModalProps {
   isOpen: boolean;
@@ -37,6 +38,7 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
   const [loading, setLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const { profile } = useProfile();
+  const [paymentTimestamp, setPaymentTimestamp] = useState<Date | null>(null);
 
   // Get the username from either context or profile
   const username = context?.user?.username || profile?.username;
@@ -51,9 +53,11 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
     return compliment.timestamp >= last24h;
   }).length;
 
-  // Function to get number of viewable compliments based on sent compliments
+  // Function to get number of viewable compliments based on sent compliments and payment status
   const getViewableComplimentsCount = (sentCount: number) => {
-    return sentCount >= 2 ? Infinity : 0; // Can view all compliments if sent 2 or more, otherwise none
+    const now = new Date();
+    const paymentValid = paymentTimestamp && (now.getTime() - paymentTimestamp.getTime()) < 24 * 60 * 60 * 1000;
+    return sentCount >= 2 || paymentValid ? Infinity : 0; // Can view all compliments if sent 2 or more, or if payment is valid
   };
 
   // Fetch both sent and received compliments when modal opens
@@ -303,7 +307,8 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
                       </div>
                       {complimentsSentLast24h < 2 && (
                         <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <span>Or unlock all with</span>
+                          {/* <span>Or unlock all with</span>
+                          
                           <DaimoPayButton.Custom
                             appId="pay-demo"
                             toChain={8453}
@@ -311,12 +316,16 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
                             toToken={getAddress(baseUSDC.token)}
                             toAddress="0xAbE4976624c9A6c6Ce0D382447E49B7feb639565"
                             onPaymentStarted={(e) => console.log(e)}
-                            onPaymentCompleted={(e) => console.log(e)}
+                            onPaymentCompleted={(e) => {
+                              console.log(e);
+                              setPaymentTimestamp(new Date()); // Set the payment timestamp when payment is completed
+                            }}
                             paymentOptions={["Coinbase"]}
                             preferredChains={[8453]}
                           >
                             {({ show }) => <button onClick={show} style={{ backgroundColor: "#FFC024", color: "#000000", borderRadius: "5px", padding: "5px 10px" }}>0.19$</button>}
                           </DaimoPayButton.Custom>
+                          */}
                         </div>
                       )}
                     </div>
