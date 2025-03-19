@@ -21,6 +21,11 @@ import { doc, getDoc, setDoc, collection, query, where, getDocs, limit } from "f
 import { useProfile } from '@farcaster/auth-kit';
 import { SignInButton } from '@farcaster/auth-kit';
 
+
+import { baseUSDC } from '@daimo/contract'
+import { DaimoPayButton } from '@daimo/pay'
+import { getAddress } from 'viem'
+
 // Function to store user data
 async function storeUserData(userId: string, warpcastName: string) {
   const userRef = doc(db, "users", userId);
@@ -260,10 +265,25 @@ export default function Demo(
             )}
           </ButtonSecondary>
           <br />
-          <div className="mb-4">
           <br />
-
-          </div>
+          <div className="flex items-center gap-2 text-sm text-gray-500 text-center">
+                          <span>Do you like this app? Support me:</span>
+                          
+                          <DaimoPayButton.Custom
+                            appId="pay-glow-P36FYozSc24Ea6r75i8BAq"
+                            toChain={baseUSDC.chainId}
+                            toUnits="1.99"
+                            toToken={getAddress(baseUSDC.token)}
+                            toAddress="0xAbE4976624c9A6c6Ce0D382447E49B7feb639565"
+                            onPaymentStarted={(e) => console.log(e)}
+                            onPaymentCompleted={(e) => console.log(e)}
+                            paymentOptions={["Coinbase"]}
+                            preferredChains={[8453]}
+                          >
+                            {({ show }) => <button onClick={show} style={{ backgroundColor: "#FFC024", color: "#000000", borderRadius: "5px", padding: "5px 10px" }}>1.99$</button>}
+                          </DaimoPayButton.Custom>
+                    
+                        </div>
 
 
         </div>
