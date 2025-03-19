@@ -3,15 +3,12 @@
 import React, { useState, useEffect } from "react";
 import { ButtonSecondary } from "~/components/ui/ButtonSecondary";
 import { type Context } from "@farcaster/frame-sdk";
-import { db, auth, signInWithFarcaster, app } from "~/app/firebase";
+import { db } from "~/app/firebase";
 import { collection, query, where, getDocs, doc, updateDoc, getDoc } from "firebase/firestore";
 import Image from "next/image";
 import { useProfile } from '@farcaster/auth-kit';
 import { FirebaseError } from 'firebase/app';
-import { logEvent } from "firebase/analytics";
-import { getAnalytics } from "firebase/analytics";
-
-const analytics = getAnalytics(app);
+import { auth, signInWithFarcaster } from "~/app/firebase";
 
 
 //import { baseUSDC } from '@daimo/contract'
@@ -60,18 +57,6 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
   const getViewableComplimentsCount = (sentCount: number) => {
     return sentCount >= 2 ? Infinity : 0; // Can view all compliments if sent 2 or more, or if payment is valid
   };
-
-  // Example function to log an event
-  function trackViewCompliments() {
-    logEvent(analytics, 'view_compliments', { username: username });
-  }
-
-  // Call this function when the modal is opened
-  useEffect(() => {
-    if (isOpen) {
-      trackViewCompliments();
-    }
-  }, [isOpen]);
 
   // Fetch both sent and received compliments when modal opens
   useEffect(() => {

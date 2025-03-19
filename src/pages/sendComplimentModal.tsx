@@ -4,16 +4,12 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "~/components/ui/Button";
 import { ButtonSecondary } from "~/components/ui/ButtonSecondary";
 import { doc, setDoc, collection, query, where, getDocs, Timestamp } from "firebase/firestore";
-import { db, auth, signInWithFarcaster, app } from "~/app/firebase";
+import { db, auth, signInWithFarcaster } from "~/app/firebase";
 import { type Context } from "@farcaster/frame-sdk";
 import Image from "next/image";
 import { createCast } from "~/lib/neynar";
 import { containsProfanity } from "~/utils/profanityFilter";
 import { useProfile } from '@farcaster/auth-kit';
-import { logEvent } from "firebase/analytics";
-import { getAnalytics } from "firebase/analytics";
-
-const analytics = getAnalytics(app);
 
 
 interface User {
@@ -243,14 +239,6 @@ export default function SendComplimentModal({ isOpen, onClose, context }: SendCo
         onClose();
         setStatusMessage(null);
       }, 2000);
-
-      // Example function to log an event
-      function trackSendCompliment() {
-        logEvent(analytics, 'send_compliment', { recipient: recipient });
-      }
-
-      // Call this function in the handleSendCompliment function
-      trackSendCompliment();
     } catch (error) {
       console.error('Error sending compliment:', error);
       setStatusMessage({ type: 'error', text: error instanceof Error ? error.message : 'Error sending compliment. Please try again.' });
