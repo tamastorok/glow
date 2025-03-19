@@ -1,7 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth, signInWithCustomToken } from "firebase/auth";
-import { getAnalytics } from "firebase/analytics";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -34,7 +33,6 @@ console.log('Initializing Firebase client with config:', {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-const analytics = getAnalytics(app);
 
 // Function to sign in with Farcaster
 async function signInWithFarcaster(fid: string, username: string) {
@@ -71,4 +69,4 @@ async function signInWithFarcaster(fid: string, username: string) {
   }
 }
 
-export { app, db, auth, analytics, signInWithFarcaster };
+export { app, db, auth, signInWithFarcaster };

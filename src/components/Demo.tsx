@@ -8,10 +8,11 @@ import sdk, {
 import { Button } from "~/components/ui/Button";
 import { ButtonSecondary } from "~/components/ui/ButtonSecondary";
 import { createStore } from 'mipd'
-import { db, signInWithFarcaster, analytics } from "~/app/firebase";
+import { db, signInWithFarcaster, app } from "~/app/firebase";
 import SendComplimentModal from "~/pages/sendComplimentModal";
 import ViewComplimentsModal from "~/pages/ViewComplimentsModal";
 import Image from "next/image";
+
 
 
 // TODO: Add SDKs for Firebase products that you want to use
@@ -21,6 +22,10 @@ import { doc, getDoc, setDoc, collection, query, where, getDocs, limit } from "f
 import { useProfile } from '@farcaster/auth-kit';
 import { SignInButton } from '@farcaster/auth-kit';
 import { logEvent } from "firebase/analytics";
+import { getAnalytics } from "firebase/analytics";
+
+const analytics = getAnalytics(app);
+
 
 // Function to store user data
 async function storeUserData(userId: string, warpcastName: string) {

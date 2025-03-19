@@ -3,12 +3,15 @@
 import React, { useState, useEffect } from "react";
 import { ButtonSecondary } from "~/components/ui/ButtonSecondary";
 import { type Context } from "@farcaster/frame-sdk";
-import { db, auth, signInWithFarcaster, analytics } from "~/app/firebase";
+import { db, auth, signInWithFarcaster, app } from "~/app/firebase";
 import { collection, query, where, getDocs, doc, updateDoc, getDoc } from "firebase/firestore";
 import Image from "next/image";
 import { useProfile } from '@farcaster/auth-kit';
 import { FirebaseError } from 'firebase/app';
 import { logEvent } from "firebase/analytics";
+import { getAnalytics } from "firebase/analytics";
+
+const analytics = getAnalytics(app);
 
 
 //import { baseUSDC } from '@daimo/contract'
