@@ -8,7 +8,7 @@ import sdk, {
 import { Button } from "~/components/ui/Button";
 import { ButtonSecondary } from "~/components/ui/ButtonSecondary";
 import { createStore } from 'mipd'
-import { db, signInWithFarcaster } from "~/app/firebase";
+import { db, signInWithFarcaster, analytics } from "~/app/firebase";
 import SendComplimentModal from "~/pages/sendComplimentModal";
 import ViewComplimentsModal from "~/pages/ViewComplimentsModal";
 import Image from "next/image";
@@ -20,6 +20,7 @@ import { doc, getDoc, setDoc, collection, query, where, getDocs, limit } from "f
 
 import { useProfile } from '@farcaster/auth-kit';
 import { SignInButton } from '@farcaster/auth-kit';
+import { logEvent } from "firebase/analytics";
 
 // Function to store user data
 async function storeUserData(userId: string, warpcastName: string) {
@@ -63,6 +64,11 @@ function SignInModal() {
       </div>
     </div>
   );
+}
+
+// Example function to log an event
+function trackButtonClick() {
+  logEvent(analytics, 'main_button_click', { button_name: 'send_compliment' });
 }
 
 export default function Demo(
@@ -243,7 +249,10 @@ export default function Demo(
 
         <div className="mb-4">
           <p className="text-center mb-2">Brighten someone&apos;s day! ✉️</p>
-          <Button onClick={() => setIsModalOpen(true)} className="font-bold">
+          <Button onClick={() => {
+            setIsModalOpen(true);
+            trackButtonClick();
+          }} className="font-bold">
             Send
           </Button>
           <br />
