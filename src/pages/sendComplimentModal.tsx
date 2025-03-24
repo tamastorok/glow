@@ -165,6 +165,12 @@ export default function SendComplimentModal({ isOpen, onClose, context }: SendCo
         console.log('Firebase sign in successful');
       }
 
+      // Add self-compliment check
+      if (recipient.toLowerCase() === username?.toLowerCase()) {
+        setStatusMessage({ type: 'error', text: 'You cannot send compliments to yourself!' });
+        return;
+      }
+
       console.log('Current auth state:', {
         isAuthenticated: !!auth.currentUser,
         uid: auth.currentUser?.uid,
