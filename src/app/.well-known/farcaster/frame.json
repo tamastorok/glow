@@ -1,0 +1,14 @@
+
+{
+    "version": "vNext",
+    "frames": [
+      {
+        "path": "/frames/compliment",
+        "image": "https://www.useglow.xyz/icon.png",
+        "post_url": "https://www.useglow.xyz/frames/compliment",
+        "buttons": [
+          { "label": "Send Compliment", "action": "post" }
+        ]
+      }
+    ]
+  }
