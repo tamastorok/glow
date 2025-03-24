@@ -3,7 +3,6 @@ import Demo from "~/components/Demo";
 
 const appUrl = process.env.NEXT_PUBLIC_URL || "https://www.useglow.xyz";
 
-
 const frameEmbed = {
   version: "next",
   imageUrl: `${appUrl}/frames/compliment/opengraph-image`,
