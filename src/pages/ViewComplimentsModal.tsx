@@ -31,6 +31,13 @@ interface Compliment {
   rating?: number;
 }
 
+// First, add the type declaration at the top of the file
+declare global {
+  interface Window {
+    gtag: (command: string, action: string, params: Record<string, unknown>) => void;
+  }
+}
+
 export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewComplimentsModalProps) {
   const [activeTab, setActiveTab] = useState("Received");
   const [sentCompliments, setSentCompliments] = useState<Compliment[]>([]);
@@ -57,6 +64,17 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
   const getViewableComplimentsCount = (sentCount: number) => {
     return sentCount >= 2 ? Infinity : 0; // Can view all compliments if sent 2 or more, or if payment is valid
   };
+
+  // Add this useEffect to track when the modal opens
+  useEffect(() => {
+    if (isOpen && typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'view_compliments', {
+        'event_category': 'Engagement',
+        'event_label': 'View Compliments Page',
+        'value': 1
+      });
+    }
+  }, [isOpen]);
 
   // Fetch both sent and received compliments when modal opens
   useEffect(() => {

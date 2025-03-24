@@ -11,6 +11,11 @@ import { createCast } from "~/lib/neynar";
 import { containsProfanity } from "~/utils/profanityFilter";
 import { useProfile } from '@farcaster/auth-kit';
 
+declare global {
+  interface Window {
+    gtag: (command: string, action: string, params: Record<string, unknown>) => void;
+  }
+}
 
 interface User {
   fid: number;
@@ -108,6 +113,16 @@ export default function SendComplimentModal({ isOpen, onClose, context }: SendCo
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (isOpen && typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'view_send_compliment_modal', {
+        'event_category': 'Engagement',
+        'event_label': 'View Send Compliment Modal',
+        'value': 1
+      });
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -235,6 +250,15 @@ export default function SendComplimentModal({ isOpen, onClose, context }: SendCo
       });
 
       await createCast(recipient);
+
+      // Add Google Analytics event tracking
+      if (typeof window !== 'undefined' && window.gtag) {
+        window.gtag('event', 'sent_compliment', {
+          'event_category': 'Engagement',
+          'event_label': 'Compliment Sent',
+          'value': 1
+        });
+      }
 
       setRecipient("");
       setCompliment("");

@@ -26,6 +26,13 @@ import { baseUSDC } from '@daimo/contract'
 import { DaimoPayButton } from '@daimo/pay'
 import { getAddress } from 'viem'
 
+// First, add the type declaration at the top of the file
+declare global {
+  interface Window {
+    gtag: (command: string, action: string, params: Record<string, unknown>) => void;
+  }
+}
+
 // Function to store user data
 async function storeUserData(userId: string, warpcastName: string) {
   const userRef = doc(db, "users", userId);
@@ -275,8 +282,26 @@ export default function Demo(
                             toUnits="1.99"
                             toToken={getAddress(baseUSDC.token)}
                             toAddress="0xAbE4976624c9A6c6Ce0D382447E49B7feb639565"
-                            onPaymentStarted={(e) => console.log(e)}
-                            onPaymentCompleted={(e) => console.log(e)}
+                            onPaymentStarted={(e) => {
+                              console.log(e);
+                              if (typeof window !== 'undefined' && window.gtag) {
+                                window.gtag('event', 'click_donate_button', {
+                                  'event_category': 'Engagement',
+                                  'event_label': 'Click Donate Button',
+                                  'value': 1
+                                });
+                              }
+                            }}
+                            onPaymentCompleted={(e) => {
+                              console.log(e);
+                              if (typeof window !== 'undefined' && window.gtag) {
+                                window.gtag('event', 'complete_donation', {
+                                  'event_category': 'Payment',
+                                  'event_label': 'Complete Donation',
+                                  'value': 1
+                                });
+                              }
+                            }}
                             paymentOptions={["Coinbase"]}
                             preferredChains={[8453]}
                           >
