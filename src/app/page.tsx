@@ -1,38 +1,37 @@
 import { Metadata } from "next";
-import App from "./app";
+import Demo from "~/components/Demo";
 
-const appUrl = process.env.NEXT_PUBLIC_URL;
+const appUrl = process.env.NEXT_PUBLIC_URL || "https://www.useglow.xyz";
 
-const frame = {
+
+const frameEmbed = {
   version: "next",
-  imageUrl: `${appUrl}/opengraph-image`,
+  imageUrl: `${appUrl}/frames/compliment/opengraph-image`,
   button: {
-    title: "Launch Frame",
+    title: "Send a secret compliment",
     action: {
       type: "launch_frame",
       name: "GLOW",
-      url: appUrl,
-      splashImageUrl: `${appUrl}/splash.png`,
-      splashBackgroundColor: "#000",
-    },
+      url: `${appUrl}/frames/compliment`,
+      splashImageUrl: `${appUrl}/icon.png`,
+      splashBackgroundColor: "#FFFFFF"
+    }
+  }
+};
+
+export const metadata: Metadata = {
+  title: "GLOW - Send anonymous compliments",
+  description: "Send anonymous compliments to anyone on Warpcast",
+  openGraph: {
+    title: "GLOW - Send anonymous compliments",
+    description: "Send anonymous compliments to anyone on Warpcast",
+    images: [`${appUrl}/frames/compliment/opengraph-image`],
+  },
+  other: {
+    "fc:frame": JSON.stringify(frameEmbed)
   },
 };
 
-export const revalidate = 300;
-
-export async function generateMetadata(): Promise<Metadata> {
-  return {
-    title: "GLOW - Send anonymous compliments",
-    openGraph: {
-      title: "GLOW - Send anonymous compliments",
-      description: "Send anonymous compliments to anyone on Warpcast.",
-    },
-    other: {
-      "fc:frame": JSON.stringify(frame),
-    },
-  };
-}
-
-export default function Home() {
-  return (<App />);
-}
+export default function ComplimentFrame() {
+  return <Demo />;
+} 

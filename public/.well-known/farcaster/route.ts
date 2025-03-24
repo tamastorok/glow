@@ -24,7 +24,7 @@ type FarcasterManifest = {
 };
 
 export async function GET() {
-  const appUrl = process.env.NEXT_PUBLIC_URL;
+  const appUrl = process.env.NEXT_PUBLIC_URL || "https://www.useglow.xyz";
   
   if (!appUrl) {
     throw new Error("NEXT_PUBLIC_URL environment variable is not set");

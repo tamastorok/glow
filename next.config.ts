@@ -22,6 +22,14 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return [
+      {
+        source: '/',
+        destination: '/frames/compliment',
+      },
+    ];
+  },
 };
 
 export default nextConfig;
