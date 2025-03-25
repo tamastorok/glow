@@ -111,10 +111,29 @@ export default function Demo(
       try {
         const context = await sdk.context;
         setContext(context);
-        //setAdded(context?.client?.added ?? false);
 
+        // Call addFrame immediately when the component mounts
+        try {
+          const result = await sdk.actions.addFrame();
+          if ('notificationDetails' in result) {
+            console.log("Frame added successfully");
+          } else if ('reason' in result) {
+            console.log("Frame add rejected:", result.reason);
+          }
+        } catch (error) {
+          console.error("Error adding frame:", error);
+        }
+
+        // Keep the existing event listeners
         sdk.on("primaryButtonClicked", () => {
           console.log("primaryButtonClicked");
+        });
+
+        sdk.on("frameAdded", async ({ notificationDetails }) => {
+          console.log("Frame added successfully");
+          if (notificationDetails) {
+            console.log("Notification details:", notificationDetails);
+          }
         });
 
         console.log("Calling ready");
