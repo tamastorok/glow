@@ -5,7 +5,7 @@
       {
         "path": "/frames/compliment",
         "image": "https://www.useglow.xyz/icon.png",
-        "post_url": "https://www.useglow.xyz/frames/compliment",
+        "post_url": "https://www.useglow.xyz",
         "buttons": [
           { "label": "Send Compliment", "action": "post" }
         ]
