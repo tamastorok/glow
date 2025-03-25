@@ -53,7 +53,7 @@ export async function GET() {
       {
         type: "cast",
         id: "send-compliment",
-        url: `${appUrl}/frames/compliment`,
+        url: appUrl,
         name: "Send Compliment"
       }
     ]
