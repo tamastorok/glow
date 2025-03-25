@@ -1,0 +1,18 @@
+{
+    "accountAssociation": {
+      "header": "eyJmaWQiOjIzNDY5MiwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweEQ5MEM0NDlBQ2M3ZDBDOWM1MDQ1MTM1QjM4REI1ODEwYTcyNDY1N0YifQ",
+      "payload": "eyJkb21haW4iOiJ1c2VnbG93Lnh5eiJ9",
+      "signature": "MHgyNzFjOTQ2YWY4NDE5YjQ5NjJjOTIxM2YyMDBhNWIyNzE1N2M4MTM2NDI3MjI4ZmQ5M2EzYjdmY2IzMTM5MDQzNDU4MjUzNDRmNWQzZjNkYzE5N2E2NjVjNTNjM2VmNDQ2YzY2OTZjNWIwNDlkNjFkYmJmYzBlMGQxNmFmZDM5MTFi"
+    },
+    "frame": {
+      "version": "1",
+      "name": "GLOW",
+      "iconUrl": "https://useglow.xyz/icon.png",
+      "homeUrl": "https://useglow.xyz",
+      "imageUrl": "https://useglow.xyz/frames/compliment/opengraph-image",
+      "buttonTitle": "Send Compliment",
+      "splashImageUrl": "https://useglow.xyz/splash.png",
+      "splashBackgroundColor": "#f7f7f7",
+      "webhookUrl": "https://useglow.xyz/api/webhook"
+    }
+  }
