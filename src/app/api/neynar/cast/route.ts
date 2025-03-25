@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     
     // Ensure recipient starts with @ and remove any existing @ if present
     const formattedRecipient = recipient.startsWith('@') ? recipient : `@${recipient}`;
-    const text = `${formattedRecipient} you received an anonymous compliment ✨ Check it out in the GLOW app: https://www.useglow.xyz/frames/compliment`;
+    const text = `${formattedRecipient} you received an anonymous compliment ✨ Check it out in the GLOW app: https://useglow.xyz/frames/compliment`;
     
     console.log('Attempting to create cast with text:', text);
     const cast = await client.publishCast({
