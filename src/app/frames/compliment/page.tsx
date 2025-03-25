@@ -3,12 +3,11 @@ import Demo from "~/components/Demo";
 
 const appUrl = process.env.NEXT_PUBLIC_URL || "https://useglow.xyz";
 
-
 const frameEmbed = {
   version: "next",
   imageUrl: `${appUrl}/frames/compliment/opengraph-image`,
   button: {
-    title: "Send a secret compliment! ✉️",
+    title: "Send a secret compliment!",
     action: {
       type: "launch_frame",
       name: "GLOW",
