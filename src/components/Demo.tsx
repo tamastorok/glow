@@ -154,47 +154,49 @@ export default function Demo(
       try {
         const contextData = await sdk.context;
         console.log("Context initialized:", contextData);
+        
+        // Guard against undefined context
+        if (!contextData) {
+          console.log("No context available - possibly running outside of Frame environment");
+          setContext(null);
+          return;
+        }
+        
         setContext(contextData);
 
         // Call ready first
         await sdk.actions.ready();
+        console.log("SDK ready called");
 
-        // Only attempt to add frame if we have user context
-        if (contextData?.user?.fid) {
+        // Attempt to add frame only if we're in a frame context
+        if (contextData?.client) {
+          console.log("In frame context, attempting to add frame");
           if (sdk.actions?.addFrame) {
             try {
               const result = await sdk.actions.addFrame();
-              if (result) {
-                if ('notificationDetails' in result) {
-                  console.log("Frame added successfully");
-                } else if ('reason' in result) {
-                  console.log("Frame add rejected:", result.reason);
-                }
-              } else {
-                console.log("No result returned from addFrame");
-              }
+              console.log("Add frame result:", result);
             } catch (error) {
               console.error("Error adding frame:", error instanceof Error ? error.message : String(error));
             }
           } else {
             console.log("addFrame action not available");
           }
-
-          // Update userId state if contextData contains user information
-          setWarpcastName(contextData.user.username ?? "Unknown Username");
-          
-          // Sign in with Firebase before storing user data
-          const userId = contextData.user.fid.toString();
-          const username = contextData.user.username ?? "unknown";
-          
-          try {
-            await signInWithFarcaster(userId, username);
-            await storeUserData(userId, username);
-          } catch (error) {
-            console.error("Error during Firebase authentication:", error);
-          }
         } else {
-          console.log("No user context available, skipping frame addition");
+          console.log("Not in frame context, skipping frame addition");
+        }
+
+        // Update userId state if contextData contains user information
+        setWarpcastName(contextData.user.username ?? "Unknown Username");
+        
+        // Sign in with Firebase before storing user data
+        const userId = contextData.user.fid.toString();
+        const username = contextData.user.username ?? "unknown";
+        
+        try {
+          await signInWithFarcaster(userId, username);
+          await storeUserData(userId, username);
+        } catch (error) {
+          console.error("Error during Firebase authentication:", error);
         }
       } catch (error) {
         console.error("Failed to initialize context:", error);

@@ -8,11 +8,11 @@ const frameEmbed = {
   version: "next",
   imageUrl: `${appUrl}/frames/compliment/opengraph-image`,
   button: {
-    title: "Send a secret compliment",
+    title: "Send a secret compliment!",
     action: {
       type: "launch_frame",
       name: "GLOW",
-      url: `${appUrl}/frames/compliment`,
+      url: appUrl,
       splashImageUrl: `${appUrl}/icon.png`,
       splashBackgroundColor: "#FFFFFF"
     }
