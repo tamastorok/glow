@@ -186,11 +186,11 @@ export default function Demo(
         }
 
         // Update userId state if contextData contains user information
-        setWarpcastName(contextData.user.username ?? "Unknown Username");
+        setWarpcastName(contextData.user.username ?? " ");
         
         // Sign in with Firebase before storing user data
         const userId = contextData.user.fid.toString();
-        const username = contextData.user.username ?? "unknown";
+        const username = contextData.user.username ?? " ";
         
         try {
           await signInWithFarcaster(userId, username);
