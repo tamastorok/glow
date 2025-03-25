@@ -22,11 +22,18 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  async rewrites() {
+  async redirects() {
     return [
       {
-        source: '/',
-        destination: '/frames/compliment',
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'www.useglow.xyz',
+          },
+        ],
+        destination: 'https://useglow.xyz/:path*',
+        permanent: true,
       },
     ];
   },
