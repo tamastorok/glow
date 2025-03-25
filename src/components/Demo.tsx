@@ -87,7 +87,7 @@ export default function Demo(
  // const [notificationDetails, setNotificationDetails] =
  //   useState<FrameNotificationDetails | null>(null);
 
-  const [warpcastName, setWarpcastName] = useState<string>("Unknown Username");
+  const [warpcastName, setWarpcastName] = useState<string>(" ");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [hasUnreadCompliments, setHasUnreadCompliments] = useState(false);
