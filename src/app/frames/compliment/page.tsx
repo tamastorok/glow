@@ -4,7 +4,7 @@ import Demo from "~/components/Demo";
 const appUrl = process.env.NEXT_PUBLIC_URL || "https://useglow.xyz";
 
 const frameEmbed = {
-  version: "next",
+  version: "1",
   imageUrl: `${appUrl}/frames/compliment/opengraph-image`,
   button: {
     title: "Send a secret compliment!",
