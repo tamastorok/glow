@@ -8,13 +8,13 @@
   "frame": {
     "version": "1",
     "name": "GLOW",
-    "iconUrl": "https://www.useglow.xyz/icon.png",
-    "homeUrl": "https://www.useglow.xyz",
-    "imageUrl": "https://www.useglow.xyz/frames/compliment/opengraph-image",
+    "iconUrl": "https://useglow.xyz/icon.png",
+    "homeUrl": "https://useglow.xyz",
+    "imageUrl": "https://useglow.xyz/frames/compliment/opengraph-image",
     "buttonTitle": "Send Compliment",
-    "splashImageUrl": "https://www.useglow.xyz/splash.png",
+    "splashImageUrl": "https://useglow.xyz/splash.png",
     "splashBackgroundColor": "#f7f7f7",
-    "webhookUrl": "https://www.useglow.xyz/api/webhook"
+    "webhookUrl": "https://useglow.xyz/api/webhook"
   }
 }
 

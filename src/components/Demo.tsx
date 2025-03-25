@@ -112,17 +112,8 @@ export default function Demo(
         const context = await sdk.context;
         setContext(context);
 
-        // Call addFrame immediately when the component mounts
-        try {
-          const result = await sdk.actions.addFrame();
-          if ('notificationDetails' in result) {
-            console.log("Frame added successfully");
-          } else if ('reason' in result) {
-            console.log("Frame add rejected:", result.reason);
-          }
-        } catch (error) {
-          console.error("Error adding frame:", error);
-        }
+        // Call ready first
+        await sdk.actions.ready();
 
         // Keep the existing event listeners
         sdk.on("primaryButtonClicked", () => {
@@ -136,20 +127,15 @@ export default function Demo(
           }
         });
 
-        console.log("Calling ready");
-        await sdk.actions.ready();
-
         // Set up a MIPD Store, and request Providers.
         const store = createStore();
 
         // Subscribe to the MIPD Store.
         store.subscribe(providerDetails => {
           console.log("PROVIDER DETAILS", providerDetails);
-          // => [EIP6963ProviderDetail, EIP6963ProviderDetail, ...]
         });
       } catch (error) {
         console.error("Error initializing SDK:", error);
-        // Handle the error appropriately - you might want to show an error message to the user
       }
     };
 
@@ -170,8 +156,31 @@ export default function Demo(
         console.log("Context initialized:", contextData);
         setContext(contextData);
 
-        // Update userId state if contextData contains user information
+        // Call ready first
+        await sdk.actions.ready();
+
+        // Only attempt to add frame if we have user context
         if (contextData?.user?.fid) {
+          if (sdk.actions?.addFrame) {
+            try {
+              const result = await sdk.actions.addFrame();
+              if (result) {
+                if ('notificationDetails' in result) {
+                  console.log("Frame added successfully");
+                } else if ('reason' in result) {
+                  console.log("Frame add rejected:", result.reason);
+                }
+              } else {
+                console.log("No result returned from addFrame");
+              }
+            } catch (error) {
+              console.error("Error adding frame:", error instanceof Error ? error.message : String(error));
+            }
+          } else {
+            console.log("addFrame action not available");
+          }
+
+          // Update userId state if contextData contains user information
           setWarpcastName(contextData.user.username ?? "Unknown Username");
           
           // Sign in with Firebase before storing user data
@@ -184,6 +193,8 @@ export default function Demo(
           } catch (error) {
             console.error("Error during Firebase authentication:", error);
           }
+        } else {
+          console.log("No user context available, skipping frame addition");
         }
       } catch (error) {
         console.error("Failed to initialize context:", error);
