@@ -11,7 +11,7 @@ const frameEmbed = {
     action: {
       type: "launch_frame",
       name: "GLOW",
-      url: appUrl,
+      url: `${appUrl}/frames/compliment`,
       splashImageUrl: `${appUrl}/icon.png`,
       splashBackgroundColor: "#FFFFFF"
     }
