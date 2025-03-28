@@ -338,7 +338,7 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
                 </button>
                 <div className="flex items-center gap-2 text-sm pr-4">
                   <span>📢</span>
-                  <p>Get notified when you receive compliments! Follow <a 
+                  <p style={{ fontSize: '12px' }}>Get notified when you receive compliments! Follow <a 
                     href="https://warpcast.com/glowbot" 
                     target="_blank" 
                     rel="noopener noreferrer"
