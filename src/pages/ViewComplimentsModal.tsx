@@ -45,7 +45,8 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
   const [loading, setLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const { profile } = useProfile();
-  //const [paymentTimestamp, setPaymentTimestamp] = useState<Date | null>(null);
+  //const [paymentCompleted, setPaymentCompleted] = useState(false);
+  const [showGlowbotCTA, setShowGlowbotCTA] = useState(true);
 
   // Get the username from either context or profile
   const username = context?.user?.username || profile?.username;
@@ -65,7 +66,6 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
     return sentCount >= 2 ? Infinity : 0; // Can view all compliments if sent 2 or more, or if payment is valid
   };
 
-  // Add this useEffect to track when the modal opens
   useEffect(() => {
     if (isOpen && typeof window !== 'undefined' && window.gtag) {
       window.gtag('event', 'view_compliments', {
@@ -75,6 +75,14 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
       });
     }
   }, [isOpen]);
+
+  // Add this useEffect to check localStorage when component mounts
+  useEffect(() => {
+    const hasClosedCTA = localStorage.getItem('glowbot-cta-closed');
+    if (hasClosedCTA) {
+      setShowGlowbotCTA(false);
+    }
+  }, []);
 
   // Fetch both sent and received compliments when modal opens
   useEffect(() => {
@@ -260,6 +268,15 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
     }
   };
 
+  // Update the showAllMessages logic to include both conditions
+  const showAllMessages = complimentsSentLast24h >= 2// || paymentCompleted;
+
+  // Add this function to handle closing the CTA
+  const handleCloseCTA = () => {
+    setShowGlowbotCTA(false);
+    localStorage.setItem('glowbot-cta-closed', 'true');
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -309,41 +326,93 @@ export default function ViewComplimentsModal({ isOpen, onClose, context }: ViewC
               </button>
             </div>
 
+            {/* Update the CTA section with close button */}
+            {showGlowbotCTA && (
+              <div className="w-[350px] mx-auto mb-4 p-3 bg-[#FFF8E7] border-2 border-[#FFC024] rounded-lg relative">
+                <button 
+                  onClick={handleCloseCTA}
+                  className="absolute top-1 right-2 text-gray-500 hover:text-gray-700"
+                  aria-label="Close notification"
+                >
+                  ×
+                </button>
+                <div className="flex items-center gap-2 text-sm pr-4">
+                  <span>📢</span>
+                  <p>Get notified when you receive compliments! Follow <a 
+                    href="https://warpcast.com/glowbot" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-[#FFC024] hover:underline font-bold"
+                    onClick={() => {
+                      if (typeof window !== 'undefined' && window.gtag) {
+                        window.gtag('event', 'click_follow_glowbot', {
+                          'event_category': 'Engagement',
+                          'event_label': 'Click Follow Glowbot',
+                          'value': 1
+                        });
+                      }
+                    }}
+                  >@glowbot</a> on Warpcast</p>
+                </div>
+              </div>
+            )}
+
             <div className="w-[350px] mx-auto flex-1 overflow-y-auto">
               {activeTab === "Received" && (
                 <div>
                   <div>
                     <div className="flex flex-col gap-4 mb-4">
                       <div className="flex items-center gap-1 text-sm text-gray-500">
-                        {complimentsSentLast24h >= 2 ? (
+                        {showAllMessages ? (
                           <span>You can view all compliments! 🎉</span>
                         ) : (
-                          <span>Send {2 - complimentsSentLast24h} more {complimentsSentLast24h === 1 ? 'compliment' : 'compliments'} to unlock all messages!</span>
+                          <div className="flex items-center gap-2">
+                            <span>
+                              Send {2 - complimentsSentLast24h} more {complimentsSentLast24h === 1 ? 'compliment' : 'compliments'} to unlock all!
+                            </span>
+                            {/*<span className="mx-2">or</span>
+                            <DaimoPayButton.Custom
+                              appId="pay-glow-P36FYozSc24Ea6r75i8BAq"
+                              toChain={baseUSDC.chainId}
+                              toUnits="0.5"
+                              toToken={getAddress(baseUSDC.token)}
+                              toAddress="0xAbE4976624c9A6c6Ce0D382447E49B7feb639565"
+                              onPaymentStarted={(e) => {
+                                console.log(e);
+                                if (typeof window !== 'undefined' && window.gtag) {
+                                  window.gtag('event', 'click_unlock_compliments_button', {
+                                    'event_category': 'Engagement',
+                                    'event_label': 'Click Unlock Compliments Button',
+                                    'value': 1
+                                  });
+                                }
+                              }}
+                              onPaymentCompleted={(e) => {
+                                console.log(e);
+                                setPaymentCompleted(true);
+                                if (typeof window !== 'undefined' && window.gtag) {
+                                  window.gtag('event', 'complete_unlock_compliments', {
+                                    'event_category': 'Payment',
+                                    'event_label': 'Complete Unlock Compliments',
+                                    'value': 1
+                                  });
+                                }
+                              }}
+                              paymentOptions={["Coinbase"]}
+                              preferredChains={[8453]}
+                            >
+                              {({ show }) => (
+                                <button 
+                                  onClick={show} 
+                                  className="bg-[#FFC024] text-black rounded px-3 py-1"
+                                >
+                                  Pay $0.50
+                                </button>
+                              )}
+                            </DaimoPayButton.Custom>*/}
+                          </div>
                         )}
                       </div>
-                      {complimentsSentLast24h < 2 && (
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          {/* <span>Or unlock all with</span>
-                          
-                          <DaimoPayButton.Custom
-                            appId="pay-demo"
-                            toChain={8453}
-                            toUnits="0.19"
-                            toToken={getAddress(baseUSDC.token)}
-                            toAddress="0xAbE4976624c9A6c6Ce0D382447E49B7feb639565"
-                            onPaymentStarted={(e) => console.log(e)}
-                            onPaymentCompleted={(e) => {
-                              console.log(e);
-                              setPaymentTimestamp(new Date()); // Set the payment timestamp when payment is completed
-                            }}
-                            paymentOptions={["Coinbase"]}
-                            preferredChains={[8453]}
-                          >
-                            {({ show }) => <button onClick={show} style={{ backgroundColor: "#FFC024", color: "#000000", borderRadius: "5px", padding: "5px 10px" }}>0.19$</button>}
-                          </DaimoPayButton.Custom>
-                          */}
-                        </div>
-                      )}
                     </div>
                   </div>
                   <ul className="space-y-2">
